@@ -1,0 +1,90 @@
+<h1 class="page-header">My Profile</h1>
+<div class="row">
+	<div class="row">
+		<div class="col-sm-6 col-md-6 col-sm-offset-3 col-md-offset-3">
+			<table id="myProfileTable" class="table table-striped table-dark"></table>
+		</div>
+	</div>
+	<br>
+	<div class="row">
+		<div class="col-sm-2 col-md-2 col-sm-offset-4 col-md-offset-4">
+			<button class="btn btn-primary btn-block" data-toggle="modal" data-target="#requestCreditModal">Request Credits</button>
+		</div>
+		<div class="col-sm-2 col-md-2">
+			<button class="btn btn-primary btn-block" data-toggle="modal" data-target="#transferCreditModal">Transfer Credits</button>
+		</div>
+	</div>
+</div>
+<!-- Modal -->
+<div class="container-fluid">
+	<div class="modal fade" id="requestCreditModal" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="center modal-title" id="requestCreditHeader">Request Credits</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-sm-8 col-md-8 col-sm-offset-2 col-md-offset-2">
+							<form id="requestCreditsForm" action="AppController" method="POST">
+								<input type="hidden" name="requestType" value="requestCredits" />
+								<div class="form-group">
+									<select class="form-control" name="amount">
+  										<option>-select amount-</option>
+  										<option value="200">200</option>
+  										<option value="500">500</option>
+  										<option value="1000">1000</option>
+  										<option value="2000">2000</option>
+									</select>
+								</div>
+								<button type="submit" id="requestCreditsButton"
+									class="btn btn-primary btn-block">Request Credits</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="container-fluid">
+	<div class="modal fade" id="transferCreditModal" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="center modal-title" id="transferCreditHeader">Transfer Credits</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-sm-8 col-md-8 col-sm-offset-2 col-md-offset-2">
+							<form id="transferCreditsForm" action="AppController" method="POST">
+								<input type="hidden" name="requestType" value="transferCredits" />
+								<div class="form-group">
+									<input type="text" class="form-control" name="toUsername" placeholder="Transfer to <Username>">
+								</div>
+								<div class="form-group">
+									<select class="form-control" name="amount">
+  										<option>-select amount-</option>
+  										<option value="200">200</option>
+  										<option value="500">500</option>
+  										<option value="1000">1000</option>
+  										<option value="2000">2000</option>
+									</select>
+								</div>
+								<button type="submit" id="requestCreditsButton"
+									class="btn btn-primary btn-block">Transfer Credits</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="errorMessage" class="center error-message"></div>
+<div id="successMessage" class="center success-message"></div>
+
+<script src="resources/app/js/myProfile.js"></script>

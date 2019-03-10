@@ -1,0 +1,96 @@
+<h1 class="page-header">Search Book</h1>
+<div class="row">
+	<form id="searchBooksForm" action="AppController" method="GET">
+		<div class="form-row">
+			<input type="hidden" name="requestType" value="searchBooks" />
+			<div class="form-group col-sm-8 col-md-6 col-md-offset-2">
+				<input type="text" class="form-control" name="bookNameParam"
+					autocomplete="off" />
+			</div>
+			<input type="hidden" id="bookSortParam" name="bookSortParam" />
+			<div class="form-group col-sm-4 col-md-2">
+				<button type="submit" id="searchBookButton" class="btn btn-primary btn-block">Search
+					Book</button>
+			</div>
+		</div>
+	</form>
+</div>
+<br>
+<br>
+<div class="row">
+	<div class="col-md-12">
+		<table id="bookTable" class="table table-condensed">
+			<thead>
+				<tr>
+					<th>Book ID</th>
+					<th>Book Title</th>
+					<th>Book Author</th>
+					<th>Book Price</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+<button style="display:none" id="bookDetailsModalButton" data-toggle="modal" data-target="#bookDetailsModal"></button>
+<!-- Modal -->
+<div class="container-fluid">
+	<div class="modal fade" id="bookDetailsModal" role="dialog">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="center modal-title" id="bookDetailsHeader">Book Details</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-sm-4 col-md-4 col-sm-offset-1 col-md-offset-1">
+							<img id="bookImage" width="240" height="300" />
+						</div>
+						<div class="col-sm-6 col-md-6">
+							<br> <br>
+							<table id="bookDetailsTable" class="table"></table>
+							<br>
+							<form id="buyReturnForm" action="AppController" method="POST">
+								<input type="hidden" id="requestType" name="requestType" value="" />
+								<input type="hidden" id="bookIdBuyReturn" name="bookId" />
+								<input type="hidden" id="bookPriceBuyReturn" name="bookPrice" />
+								<button type="submit" id="buyReturnButton"
+									class="btn btn-primary btn-block mb-2"></button>
+							</form>
+						</div>
+					</div>
+					<br>
+					<div class="row">
+						<div class="col-sm-10 col-md-10 col-sm-offset-1 col-md-offset-1">
+							<h2>Comments</h2>
+							<div class="row">
+								<form id="commentForm" action="AppController" method="POST">
+									<input type="hidden" name="requestType" value="postComment" />
+									<input type="hidden" id="bookIdComment"name="bookId" />
+									<div class="form-group">
+										<textarea class="form-control" rows="4" id="bookComment"
+											name="bookComment"></textarea>
+									</div>
+									<div class="form-group">
+										<button type="submit" class="btn btn-primary pull-right">Post
+											Comment</button>
+									</div>
+								</form>
+							</div>
+							<br>
+							<div class="row">
+								<div id="bookComments"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="errorMessage" class="center error-message"></div>
+<div id="successMessage" class="center success-message"></div>
+
+<script src="resources/app/js/searchBooks.js"></script>
