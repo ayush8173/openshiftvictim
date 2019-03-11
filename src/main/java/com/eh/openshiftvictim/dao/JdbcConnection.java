@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 
 public class JdbcConnection {
 
-	public static boolean isOpenshift = false;
+	public static boolean isOpenshift = true;
 
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
