@@ -39,10 +39,10 @@
 			},
 			error : function(xhr) {
 				if(xhr.status == 401) {
-					if(location.hostname == 'localhost') {
-						location.href = location.protocol + '//' + location.host + '/ROOT';
-					} else {
+					if((location.hostname).endsWith("openshiftapps.com")) {
 						location.href = location.protocol + '//' + location.host;
+					} else {
+						location.href = location.protocol + '//' + location.host + '/ROOT';
 					}
 				}
 			}
@@ -76,10 +76,10 @@
 			},
 			error : function(xhr) {
 				if(xhr.status == 401) {
-					if(location.hostname == 'localhost') {
-						location.href = location.protocol + '//' + location.host + '/ROOT';
-					} else {
+					if((location.hostname).endsWith("openshiftapps.com")) {
 						location.href = location.protocol + '//' + location.host;
+					} else {
+						location.href = location.protocol + '//' + location.host + '/ROOT';
 					}
 				}
 			}
@@ -118,10 +118,10 @@
 			},
 			error : function(xhr) {
 				if(xhr.status == 401) {
-					if(location.hostname == 'localhost') {
-						location.href = location.protocol + '//' + location.host + '/ROOT';
-					} else {
+					if((location.hostname).endsWith("openshiftapps.com")) {
 						location.href = location.protocol + '//' + location.host;
+					} else {
+						location.href = location.protocol + '//' + location.host + '/ROOT';
 					}
 				}
 			}
@@ -184,10 +184,10 @@ function viewBook(bookId) {
 		},
 		error : function(xhr) {
 			if(xhr.status == 401) {
-				if(location.hostname == 'localhost') {
-					location.href = location.protocol + '//' + location.host + '/ROOT';
-				} else {
+				if((location.hostname).endsWith("openshiftapps.com")) {
 					location.href = location.protocol + '//' + location.host;
+				} else {
+					location.href = location.protocol + '//' + location.host + '/ROOT';
 				}
 			}
 		}

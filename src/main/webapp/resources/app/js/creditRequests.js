@@ -42,10 +42,10 @@ function showCreditRequests() {
 		},
 		error : function(xhr) {
 			if(xhr.status == 401) {
-				if(location.hostname == 'localhost') {
-					location.href = location.protocol + '//' + location.host + '/ROOT';
-				} else {
+				if((location.hostname).endsWith("openshiftapps.com")) {
 					location.href = location.protocol + '//' + location.host;
+				} else {
+					location.href = location.protocol + '//' + location.host + '/ROOT';
 				}
 			}
 		}
@@ -65,10 +65,10 @@ function processRequest(action, username) {
 		},
 		error : function(xhr) {
 			if(xhr.status == 401) {
-				if(location.hostname == 'localhost') {
-					location.href = location.protocol + '//' + location.host + '/ROOT';
-				} else {
+				if((location.hostname).endsWith("openshiftapps.com")) {
 					location.href = location.protocol + '//' + location.host;
+				} else {
+					location.href = location.protocol + '//' + location.host + '/ROOT';
 				}
 			}
 		}
