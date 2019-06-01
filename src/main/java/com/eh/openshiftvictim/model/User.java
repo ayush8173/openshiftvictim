@@ -2,13 +2,25 @@ package com.eh.openshiftvictim.model;
 
 import java.util.List;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+@XStreamAlias("user")
 public class User {
 
+	@XStreamAlias("username")
 	private String username;
+
+	@XStreamAlias("password")
 	private String password;
+
+	@XStreamAlias("firstName")
 	private String firstName;
+
+	@XStreamAlias("lastName")
 	private String lastName;
+
 	private String credits;
+
 	private List<String> roles;
 
 	public String getUsername() {

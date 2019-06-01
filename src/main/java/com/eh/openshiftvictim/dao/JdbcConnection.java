@@ -15,15 +15,15 @@ import javax.sql.DataSource;
 
 public class JdbcConnection {
 
-	public static boolean isOpenshift = true;
+	public static boolean isOpenshift = false;
 
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	static final String DB_URL = "jdbc:mysql://localhost:3306/openshiftappdb";
+	static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/BOOKSTOREDB";
 
 	// Database credentials
-	static final String DB_USER = "root";
-	static final String DB_PASS = "root";
+	static final String DB_USER = "mynewuser";
+	static final String DB_PASS = "Passw0rd";
 
 	public Connection openConnection() {
 		Connection connection = null;

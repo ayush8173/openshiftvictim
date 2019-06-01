@@ -10,6 +10,8 @@
 	});
 
 	$("#requestCreditsForm").submit(function(e) {
+		$("#errorMessage").html("");
+		$("#successMessage").html("");
 		var form = $(this);
 		var url = form.attr('action');
 		var method = form.attr('method');
@@ -22,11 +24,7 @@
 			},
 			error : function(xhr) {
 				if(xhr.status == 401) {
-					if((location.hostname).endsWith("openshiftapps.com")) {
-						location.href = location.protocol + '//' + location.host;
-					} else {
-						location.href = location.protocol + '//' + location.host + '/ROOT';
-					}
+					location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
 				}
 			}
 		});
@@ -34,6 +32,8 @@
 	});
 	
 	$("#transferCreditsForm").submit(function(e) {
+		$("#errorMessage").html("");
+		$("#successMessage").html("");
 		var form = $(this);
 		var url = form.attr('action');
 		var method = form.attr('method');
@@ -46,11 +46,7 @@
 			},
 			error : function(xhr) {
 				if(xhr.status == 401) {
-					if((location.hostname).endsWith("openshiftapps.com")) {
-						location.href = location.protocol + '//' + location.host;
-					} else {
-						location.href = location.protocol + '//' + location.host + '/ROOT';
-					}
+					location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
 				}
 			}
 		});
@@ -84,11 +80,7 @@ function fetchMyProfile() {
 		},
 		error : function(xhr) {
 			if(xhr.status == 401) {
-				if((location.hostname).endsWith("openshiftapps.com")) {
-					location.href = location.protocol + '//' + location.host;
-				} else {
-					location.href = location.protocol + '//' + location.host + '/ROOT';
-				}
+				location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
 			}
 		}
 	});

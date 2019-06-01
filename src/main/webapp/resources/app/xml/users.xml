@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Users>
+	<User id="1">
+		<username>admin</username>
+		<password>admin</password>
+		<firstName>Root</firstName>
+		<lastName>Admin</lastName>
+		<credits>0</credits>
+	</User>
+	<User id="2">
+		<username>siddhant</username>
+		<password>siddhant</password>
+		<firstName>Siddhant</firstName>
+		<lastName>Singh</lastName>
+		<credits>0</credits>
+	</User>
+</Users>

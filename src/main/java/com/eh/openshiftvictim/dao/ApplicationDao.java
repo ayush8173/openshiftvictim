@@ -9,7 +9,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.eh.openshiftvictim.model.Book;
 import com.eh.openshiftvictim.model.BookComment;
@@ -24,12 +26,16 @@ public class ApplicationDao extends SqlQueries {
 	PreparedStatement preparedStatement = null;
 	ResultSet resultSet = null;
 
-	public List<Book> searchBook(String bookNameParam) throws SQLException {
-		final String SQL_QUERY = "select * from BOOK_INFO where BOOK_TITLE like '%" + bookNameParam.toUpperCase()
-				+ "%'";
+	public List<Book> searchBook(boolean isBookId, String searchParam) throws SQLException {
+		final String SQL_QUERY = "select * from BOOK_INFO where BOOK_ID = '" + searchParam + "'";
+		final String SQL_QUERY1 = "select * from BOOK_INFO where BOOK_TITLE like '%" + searchParam.toUpperCase() + "%'";
 
 		connection = jdbcConnection.openConnection();
-		preparedStatement = connection.prepareStatement(SQL_QUERY);
+		if (isBookId) {
+			preparedStatement = connection.prepareStatement(SQL_QUERY);
+		} else {
+			preparedStatement = connection.prepareStatement(SQL_QUERY1);
+		}
 		resultSet = preparedStatement.executeQuery();
 		List<Book> bookList = new ArrayList<Book>();
 
@@ -44,6 +50,22 @@ public class ApplicationDao extends SqlQueries {
 		}
 		jdbcConnection.closeConnection(connection, statement, preparedStatement, resultSet);
 		return bookList;
+	}
+
+	public boolean checkBookExist(String bookId) throws SQLException {
+		boolean bookExist = false;
+
+		final String SQL_QUERY = "select * from BOOK_INFO where BOOK_ID = '" + bookId + "'";
+
+		connection = jdbcConnection.openConnection();
+		preparedStatement = connection.prepareStatement(SQL_QUERY);
+		resultSet = preparedStatement.executeQuery();
+
+		while (resultSet.next()) {
+			bookExist = true;
+		}
+		jdbcConnection.closeConnection(connection, statement, preparedStatement, resultSet);
+		return bookExist;
 	}
 
 	public List<Book> searchUserBooks(String username, String sortBy) throws SQLException {
@@ -70,7 +92,7 @@ public class ApplicationDao extends SqlQueries {
 		return bookList;
 	}
 
-	public Book searchBookById(String bookId, String username) throws SQLException {
+	public Book searchBookForDisplay(String bookId, String username) throws SQLException {
 		final String SQL_QUERY = "select * from BOOK_INFO where BOOK_ID = '" + bookId + "'";
 		connection = jdbcConnection.openConnection();
 		preparedStatement = connection.prepareStatement(SQL_QUERY);
@@ -98,7 +120,7 @@ public class ApplicationDao extends SqlQueries {
 			bookComment.setCommentDate(resultSet.getString("COMMENT_DATE"));
 			bookComments.add(bookComment);
 		}
-		book.setBookComments(bookComments);
+		book.setBookComment(bookComments);
 		jdbcConnection.closeConnection(connection, statement, preparedStatement, resultSet);
 
 		final String SQL_QUERY3 = "select * from BOOK_BOUGHT_MAP where BOOK_ID = '" + bookId + "' and USERNAME = '"
@@ -114,9 +136,19 @@ public class ApplicationDao extends SqlQueries {
 		return book;
 	}
 
-	public void postComment(String bookId, BookComment bookComment) throws SQLException {
+	public void logXmlInput(String xmlInput) throws SQLException {
+		final String SQL_QUERY = "insert into INPUT_XML (XML_DATA, CREATED_DATE) values ('" + xmlInput + "', now())";
+
+		connection = jdbcConnection.openConnection();
+		preparedStatement = connection.prepareStatement(SQL_QUERY);
+		preparedStatement.executeUpdate();
+		jdbcConnection.closeConnection(connection, statement, preparedStatement, resultSet);
+	}
+
+	public void postComment(Book book) throws SQLException {
 		final String SQL_QUERY = "insert into BOOK_COMMENTS (BOOK_ID, USERNAME, COMMENT, COMMENT_DATE) values ('"
-				+ bookId + "', '" + bookComment.getCommentor() + "', '" + bookComment.getComment() + "', now())";
+				+ book.getBookId() + "', '" + book.getBookComment().get(0).getCommentor() + "', '"
+				+ book.getBookComment().get(0).getComment() + "', now())";
 
 		connection = jdbcConnection.openConnection();
 		preparedStatement = connection.prepareStatement(SQL_QUERY);
@@ -393,6 +425,30 @@ public class ApplicationDao extends SqlQueries {
 		preparedStatement = connection.prepareStatement(SQL_QUERY);
 		preparedStatement.setBinaryStream(1, fileInputStream);
 		preparedStatement.setString(2, bookId);
+		preparedStatement.executeUpdate();
+		jdbcConnection.closeConnection(connection, statement, preparedStatement, resultSet);
+	}
+
+	public Map<String, String> fetchAllFiles() throws SQLException {
+		final String SQL_QUERY = "select * from FILES where (timediff(now(), CREATED_DATE) < '24:00:00') order by CREATED_DATE desc";
+
+		connection = jdbcConnection.openConnection();
+		preparedStatement = connection.prepareStatement(SQL_QUERY);
+		resultSet = preparedStatement.executeQuery();
+		Map<String, String> fileMap = new HashMap<String, String>();
+
+		while (resultSet.next()) {
+			fileMap.put(resultSet.getString("FILE_NAME"), resultSet.getString("CREATED_DATE"));
+		}
+		jdbcConnection.closeConnection(connection, statement, preparedStatement, resultSet);
+		return fileMap;
+	}
+
+	public void createFile(String fileName) throws SQLException {
+		final String SQL_QUERY = "insert into FILES (FILE_NAME, CREATED_DATE) values ('" + fileName + "', now())";
+
+		connection = jdbcConnection.openConnection();
+		preparedStatement = connection.prepareStatement(SQL_QUERY);
 		preparedStatement.executeUpdate();
 		jdbcConnection.closeConnection(connection, statement, preparedStatement, resultSet);
 	}

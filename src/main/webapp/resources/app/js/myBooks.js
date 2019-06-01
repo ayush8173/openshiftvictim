@@ -10,6 +10,8 @@
 	});
 
 	$("#buyReturnForm").submit(function(e) {
+		$("#errorMessage").html("");
+		$("#successMessage").html("");
 		var form = $(this);
 		var url = form.attr('action');
 		var method = form.attr('method');
@@ -33,11 +35,7 @@
 			},
 			error : function(xhr) {
 				if(xhr.status == 401) {
-					if((location.hostname).endsWith("openshiftapps.com")) {
-						location.href = location.protocol + '//' + location.host;
-					} else {
-						location.href = location.protocol + '//' + location.host + '/ROOT';
-					}
+					location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
 				}
 			}
 		});
@@ -45,6 +43,8 @@
 	});
 	
 	$("#commentForm").submit(function(e) {
+		$("#errorMessage").html("");
+		$("#successMessage").html("");
 		var form = $(this);
 		var url = form.attr('action');
 		var method = form.attr('method');
@@ -64,22 +64,24 @@
 					for (var i = 0; i < bookComments.length; i++) {
 						for (var i = 0; i < bookComments.length; i++) {
 							$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-									+ encodeHtml(bookComments[i].commentDate) + "] "
-									+ encodeHtml(bookComments[i].commentor) + " - "
-									+ encodeHtml(bookComments[i].comment)
+									+ bookComments[i].commentDate + "] "
+									+ bookComments[i].commentor + " - "
+									+ bookComments[i].comment
 									+ "</div>"
 							);
+//							$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+//									+ encodeHtml(bookComments[i].commentDate) + "] "
+//									+ encodeHtml(bookComments[i].commentor) + " - "
+//									+ encodeHtml(bookComments[i].comment)
+//									+ "</div>"
+//							);
 						}
 					}
 				}
 			},
 			error : function(xhr) {
 				if(xhr.status == 401) {
-					if((location.hostname).endsWith("openshiftapps.com")) {
-						location.href = location.protocol + '//' + location.host;
-					} else {
-						location.href = location.protocol + '//' + location.host + '/ROOT';
-					}
+					location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
 				}
 			}
 		});
@@ -121,17 +123,15 @@ function showMyBooks(sortBy) {
 		},
 		error : function(xhr) {
 			if(xhr.status == 401) {
-				if((location.hostname).endsWith("openshiftapps.com")) {
-					location.href = location.protocol + '//' + location.host;
-				} else {
-					location.href = location.protocol + '//' + location.host + '/ROOT';
-				}
+				location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
 			}
 		}
 	});
 }
 
 function viewBook(bookId) {
+	$("#errorMessage").html("");
+	$("#successMessage").html("");
 	$("#bookDetailsTable").empty();
 	$("#bookComments").html("");
 	
@@ -167,22 +167,24 @@ function viewBook(bookId) {
 				var bookComments = book.bookComment;
 				for (var i = 0; i < bookComments.length; i++) {
 					$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-							+ encodeHtml(bookComments[i].commentDate) + "] "
-							+ encodeHtml(bookComments[i].commentor) + " - "
-							+ encodeHtml(bookComments[i].comment)
+							+ bookComments[i].commentDate + "] "
+							+ bookComments[i].commentor + " - "
+							+ bookComments[i].comment
 							+ "</div>"
 					);
+//					$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+//							+ encodeHtml(bookComments[i].commentDate) + "] "
+//							+ encodeHtml(bookComments[i].commentor) + " - "
+//							+ encodeHtml(bookComments[i].comment)
+//							+ "</div>"
+//					);
 				}
 				$("#bookDetailsModalButton").click();
 			}
 		},
 		error : function(xhr) {
 			if(xhr.status == 401) {
-				if((location.hostname).endsWith("openshiftapps.com")) {
-					location.href = location.protocol + '//' + location.host;
-				} else {
-					location.href = location.protocol + '//' + location.host + '/ROOT';
-				}
+				location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
 			}
 		}
 	});

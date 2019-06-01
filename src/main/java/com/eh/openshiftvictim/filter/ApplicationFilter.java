@@ -48,7 +48,9 @@ public class ApplicationFilter implements Filter {
 		HttpServletResponse resp = (HttpServletResponse) response;
 		String file = req.getServletPath();
 
-		if (!"/login.jsp".equals(file) && ((HttpServletRequest) request).getSession().getAttribute("user") == null) {
+		if (!("/login.jsp".equals(file) || "/loginSql.jsp".equals(file) || "/loginLdap.jsp".equals(file)
+				|| "/loginXml.jsp".equals(file))
+				&& ((HttpServletRequest) request).getSession().getAttribute("user") == null) {
 			if (file != null && file.endsWith(".html") && "XMLHttpRequest".equals(req.getHeader("X-Requested-With"))) {
 				PrintWriter out = response.getWriter();
 				resp.setStatus(401);
@@ -61,7 +63,8 @@ public class ApplicationFilter implements Filter {
 				RequestDispatcher dispatcher = request.getRequestDispatcher("login.jsp");
 				dispatcher.forward(request, response);
 			}
-		} else if ("/login.jsp".equals(file)
+		} else if (("/login.jsp".equals(file) || "/loginSql.jsp".equals(file) || "/loginLdap.jsp".equals(file)
+				|| "/loginXml.jsp".equals(file))
 				&& ((HttpServletRequest) request).getSession().getAttribute("user") != null) {
 			RequestDispatcher dispatcher = request.getRequestDispatcher("home.jsp");
 			dispatcher.forward(request, response);

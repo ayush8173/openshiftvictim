@@ -3,7 +3,10 @@ package com.eh.openshiftvictim.controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -11,6 +14,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+
+import org.apache.directory.api.ldap.model.cursor.CursorException;
+import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.xml.sax.SAXException;
 
 import com.eh.openshiftvictim.model.Book;
 import com.eh.openshiftvictim.model.BookComment;
@@ -19,7 +28,9 @@ import com.eh.openshiftvictim.model.User;
 import com.eh.openshiftvictim.service.ApplicationService;
 import com.eh.openshiftvictim.service.LoginService;
 import com.eh.openshiftvictim.utility.ApplicationUtility;
+import com.eh.openshiftvictim.utility.JaxbConvertor;
 import com.eh.openshiftvictim.utility.JsonResponse;
+import com.eh.openshiftvictim.utility.XstreamConvertor;
 
 /**
  * Servlet implementation class LoginController
@@ -45,9 +56,34 @@ public class AppController extends HttpServlet {
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		RequestDispatcher dispatcher = null;
+		JsonResponse jsonResponse = new JsonResponse();
 		final String requestType = request.getParameter("requestType");
 
-		if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+		// For Havij Demo - Start
+		final String havijBookId = request.getParameter("id");
+		if (havijBookId != null) {
+			try {
+				List<Book> bookList = applicationService.searchBook(true, havijBookId);
+				if (bookList != null && bookList.size() > 0) {
+					jsonResponse.setStatus("success");
+					jsonResponse.setData(bookList);
+				} else {
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData("Could not found any result!");
+				}
+			} catch (SQLException e) {
+				jsonResponse.setStatus("failed");
+				jsonResponse.setData(e.getMessage());
+			}
+			PrintWriter out = response.getWriter();
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			out.print(jsonResponse.getJsonResponseString(jsonResponse));
+			out.flush();
+		}
+		// For Havij Demo - End
+
+		else if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
 			doPost(request, response);
 		} else {
 			if (requestType != null && !"".equals(requestType)) {
@@ -75,15 +111,26 @@ public class AppController extends HttpServlet {
 		JsonResponse jsonResponse = new JsonResponse();
 		final String requestType = request.getParameter("requestType");
 
-		if ("login".equals(requestType)) {
+		if ("login".equals(requestType) || "loginSql".equals(requestType) || "loginLdap".equals(requestType)
+				|| "loginXml".equals(requestType)) {
 			final String username = request.getParameter("username");
 			final String password = request.getParameter("password");
 			try {
-				User user = loginService.doLogin(username, password);
+				User user = null;
+				if ("login".equals(requestType)) {
+					user = loginService.doLogin(username, password);
+				} else if ("loginSql".equals(requestType)) {
+					user = loginService.doLoginSql(username, password);
+				} else if ("loginLdap".equals(requestType)) {
+					user = loginService.doLoginLdap(username, password);
+				} else if ("loginXml".equals(requestType)) {
+					String xmlPath = getServletContext().getRealPath("/resources/app/xml/");
+					user = loginService.doLoginXml(xmlPath, username, password);
+				}
 				if (request.getSession(false) != null) {
 					request.getSession(false).invalidate();
 					HttpSession session = request.getSession(true);
-					if (user.getUsername() != null) {
+					if (user != null && user.getUsername() != null) {
 						session.setAttribute("user", user);
 						dispatcher = request.getRequestDispatcher("home.jsp");
 						session.setAttribute("currentPage", "home.jsp");
@@ -95,6 +142,26 @@ public class AppController extends HttpServlet {
 							"Either your browser cookie is disbled or some unknown error happened!");
 				}
 			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
+			} catch (LdapException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
+			} catch (CursorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
+			} catch (XPathExpressionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
+			} catch (ParserConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
+			} catch (SAXException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				request.setAttribute("errorMessage", e.getMessage());
@@ -112,24 +179,41 @@ public class AppController extends HttpServlet {
 			dispatcher = request.getRequestDispatcher("login.jsp");
 			request.getSession().setAttribute("currentPage", "login.jsp");
 			dispatcher.forward(request, response);
-		} else if ("uploadBookImage".equals(requestType)) {			
+		} else if ("uploadBookImage".equals(requestType)) {
 			String relativeWebPath = "/resources/app/images/Books/";
 			String absoluteDiskPath = getServletContext().getRealPath(relativeWebPath);
-			
+
 			ApplicationUtility.populateBookImageMap();
-			for (String bookId : ApplicationUtility.bookImageMap.keySet()){
+			for (String bookId : ApplicationUtility.bookImageMap.keySet()) {
 				try {
-					applicationService.uploadBookImage(bookId, absoluteDiskPath + ApplicationUtility.bookImageMap.get(bookId));
+					applicationService.uploadBookImage(bookId,
+							absoluteDiskPath + ApplicationUtility.bookImageMap.get(bookId));
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-		} else if (requestType != null && !"searchBooks".equals(requestType) && !"searchMyBooks".equals(requestType)
-				&& !"displayBook".equals(requestType) && !"buyBook".equals(requestType)
-				&& !"returnBook".equals(requestType) && !"postComment".equals(requestType)
-				&& !"fetchMyProfile".equals(requestType) && !"fetchAllUsers".equals(requestType)
-				&& ((HttpServletRequest) request).getSession().getAttribute("user") == null) {
+		} else if ("wsPostComment".equals(requestType)) {
+			final String xmlInput = request.getParameter("xmlInput");
+			final Book book = JaxbConvertor.xmlToObject(xmlInput);
+			try {
+				applicationService.logXmlInput(xmlInput);
+				applicationService.postComment(book);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else if ("wsCreateUser".equals(requestType)) {
+			final String xmlInput = request.getParameter("xmlInput");
+			final User user = (User) XstreamConvertor.xmlToObject(xmlInput);
+			try {
+				applicationService.logXmlInput(xmlInput);
+				applicationService.addNewUser(user);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else if (requestType != null && ((HttpServletRequest) request).getSession().getAttribute("user") == null) {
 			if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
 				jsonResponse.setStatus("failed");
 				jsonResponse.setData("Either user is not authenticated or session has expired!");
@@ -145,11 +229,20 @@ public class AppController extends HttpServlet {
 				request.getSession().setAttribute("currentPage", "login.jsp");
 				dispatcher.forward(request, response);
 			}
+		} else if ("homeSearch".equals(requestType)) {
+			final String searchParam = request.getParameter("searchParam");
+			request.setAttribute("successMessage", "You search for: " + searchParam);
+			dispatcher = request.getRequestDispatcher("home.jsp");
+			request.getSession().setAttribute("currentPage", "home.jsp");
+			dispatcher.forward(request, response);
 		} else {
 			if ("searchBooks".equals(requestType)) {
 				try {
-					final String bookNameParam = request.getParameter("bookNameParam");
-					List<Book> bookList = applicationService.searchBook(bookNameParam);
+					final boolean isBookId = "bookId".equalsIgnoreCase(request.getParameter("searchParamType")) ? true
+							: false;
+					final String searchParam = isBookId ? request.getParameter("bookIdParam")
+							: request.getParameter("bookTitleParam");
+					List<Book> bookList = applicationService.searchBook(isBookId, searchParam);
 					if (bookList != null && bookList.size() > 0) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(bookList);
@@ -160,6 +253,22 @@ public class AppController extends HttpServlet {
 				} catch (SQLException e) {
 					jsonResponse.setStatus("failed");
 					jsonResponse.setData(e.getMessage());
+				}
+			} else if ("checkBookExist".equals(requestType)) {
+				try {
+					final String bookId = request.getParameter("bookIdParam");
+					boolean bookExist = applicationService.checkBookExist(bookId);
+					if (bookExist) {
+						jsonResponse.setStatus("success");
+						jsonResponse.setData("Book " + bookId + " exists!");
+					} else {
+						jsonResponse.setStatus("failed");
+						jsonResponse.setData("Book " + bookId + " doesn't exist!");
+					}
+				} catch (SQLException e) {
+					jsonResponse.setStatus("failed");
+					//jsonResponse.setData(e.getMessage());
+					jsonResponse.setData("An unexpected error occured!");
 				}
 			} else if ("searchMyBooks".equals(requestType)) {
 				final String sortBy = request.getParameter("sortBy");
@@ -181,7 +290,7 @@ public class AppController extends HttpServlet {
 				final String bookId = request.getParameter("bookId");
 				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
 				try {
-					Book book = applicationService.searchBookById(bookId, username);
+					Book book = applicationService.searchBookForDisplay(bookId, username);
 					if (book.getBookId() != null) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(book);
@@ -205,7 +314,7 @@ public class AppController extends HttpServlet {
 						applicationService.returnBook(bookId, bookPrice, username);
 					}
 
-					Book book = applicationService.searchBookById(bookId, username);
+					Book book = applicationService.searchBookForDisplay(bookId, username);
 					if (book.getBookId() != null && boughtStatus) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(book);
@@ -220,12 +329,20 @@ public class AppController extends HttpServlet {
 			} else if ("postComment".equals(requestType)) {
 				final String bookId = request.getParameter("bookId");
 				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+
 				final BookComment bookComment = new BookComment();
 				bookComment.setCommentor(username);
 				bookComment.setComment(request.getParameter("bookComment"));
+
+				final List<BookComment> bookComments = new ArrayList<BookComment>();
+				bookComments.add(bookComment);
+
+				final Book bookWithComment = new Book();
+				bookWithComment.setBookId(bookId);
+				bookWithComment.setBookComment(bookComments);
 				try {
-					applicationService.postComment(bookId, bookComment);
-					Book book = applicationService.searchBookById(bookId, username);
+					applicationService.postComment(bookWithComment);
+					Book book = applicationService.searchBookForDisplay(bookId, username);
 					if (book.getBookId() != null) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(book);
@@ -301,7 +418,8 @@ public class AppController extends HttpServlet {
 					e.printStackTrace();
 				}
 			} else if ("processCreditRequests".equals(requestType)) {
-				final String approveReject = "approve".equals(request.getParameter("approveReject")) ? "APPROVED" : "REJECTED";
+				final String approveReject = "approve".equals(request.getParameter("approveReject")) ? "APPROVED"
+						: "REJECTED";
 				final String username = request.getParameter("username");
 				try {
 					applicationService.processCreditRequest(approveReject, username);
@@ -338,6 +456,42 @@ public class AppController extends HttpServlet {
 						jsonResponse.setStatus("failed");
 						jsonResponse.setData("User with username " + cuUser.getUsername() + " already exists!");
 					}
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else if ("fetchAllFiles".equals(requestType)) {
+				try {
+					Map<String, String> fileMap = applicationService.fetchAllFiles();
+					if (fileMap != null && fileMap.size() > 0) {
+						jsonResponse.setStatus("success");
+						jsonResponse.setData(fileMap);
+					} else {
+						jsonResponse.setStatus("failed");
+						jsonResponse.setData("Could not found any result!");
+					}
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else if ("createFile".equals(requestType)) {
+				final String absoluteDiskJarsPath = getServletContext().getRealPath("/resources/app/jars/");
+				final String absoluteDiskTempPath = getServletContext().getRealPath("/resources/app/temp/");
+				final String fileName = Long.toString((new Date()).getTime()) + ".txt";
+				final String username = request.getParameter("username");
+				try {
+					applicationService.createFile(absoluteDiskJarsPath, absoluteDiskTempPath, fileName, username);
+					Map<String, String> fileMap = applicationService.fetchAllFiles();
+					if (fileMap != null && fileMap.size() > 0) {
+						jsonResponse.setStatus("success");
+						jsonResponse.setData(fileMap);
+					} else {
+						jsonResponse.setStatus("failed");
+						jsonResponse.setData("Could not found any result!");
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

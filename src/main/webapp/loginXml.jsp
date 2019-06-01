@@ -34,12 +34,12 @@
 		<div class="col-xs-6 col-sm-6 col-md-4 col-xs-offset-3 col-sm-offset-3 col-md-offset-4">
 
 			<div class="panel panel-default form-panel panel-semi-transparent">
-				<div class="panel-heading center">Book Store Victim</div>
+				<div class="panel-heading center">Book Store Victim (XML Login)</div>
 
 				<div class="panel-body">
 					<form class="form-horizontal" action="AppController" method="POST">
 
-						<input type="hidden" name="requestType" value="login" />
+						<input type="hidden" name="requestType" value="loginXml" />
 
 						<div class="form-group">
 							<div class="col-md-10 col-md-offset-1">

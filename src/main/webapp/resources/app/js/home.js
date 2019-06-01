@@ -12,11 +12,12 @@ $(document).ready(function() {
 			url : "_welcome.html",
 			error : function(xhr) {
 				if(xhr.status == 401) {
-					if((location.hostname).endsWith("openshiftapps.com")) {
-						location.href = location.protocol + '//' + location.host;
-					} else {
-						location.href = location.protocol + '//' + location.host + '/ROOT';
-					}
+					location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
+//					if((location.hostname).endsWith("openshiftapps.com")) {
+//						location.href = location.protocol + '//' + location.host;
+//					} else {
+//						location.href = location.protocol + '//' + location.host + '/ROOT';
+//					}
 				}
 			}
 		});
@@ -46,6 +47,8 @@ function loadMenu(menuName) {
 		$("ul.nav-sidebar li:eq(4)").addClass("active");
 	} else if ("_allUsers.html" == menuName) {
 		$("ul.nav-sidebar li:eq(5)").addClass("active");
+	} else if ("_createFile.html" == menuName) {
+		$("ul.nav-sidebar li:eq(6)").addClass("active");
 	}
 }
 
@@ -58,11 +61,7 @@ function includeHTML(fileName) {
 		},
 		error : function(xhr) {
 			if(xhr.status == 401) {
-				if((location.hostname).endsWith("openshiftapps.com")) {
-					location.href = location.protocol + '//' + location.host;
-				} else {
-					location.href = location.protocol + '//' + location.host + '/ROOT';
-				}
+				location.href = location.protocol + '//' + location.host + '/BookStoreVictim';
 			}
 		}
 	});

@@ -2,6 +2,11 @@ package com.eh.openshiftvictim.model;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class Book {
 
 	private String bookId;
@@ -10,38 +15,15 @@ public class Book {
 	private String bookAuthor;
 	private String bookPrice;
 	private String bookImage;
-	private List<BookComment> bookComment;
 	private String hasBook;
 	private String boughtDate;
-
-	public String getBoughtDate() {
-		return boughtDate;
-	}
-
-	public void setBoughtDate(String boughtDate) {
-		this.boughtDate = boughtDate;
-	}
-
-	public List<BookComment> getBookComment() {
-		return bookComment;
-	}
-
-	public void setBookComment(List<BookComment> bookComment) {
-		this.bookComment = bookComment;
-	}
-
-	public String getHasBook() {
-		return hasBook;
-	}
-
-	public void setHasBook(String hasBook) {
-		this.hasBook = hasBook;
-	}
+	private List<BookComment> bookComment;
 
 	public String getBookId() {
 		return bookId;
 	}
 
+	@XmlAttribute
 	public void setBookId(String bookId) {
 		this.bookId = bookId;
 	}
@@ -86,11 +68,28 @@ public class Book {
 		this.bookImage = bookImage;
 	}
 
-	public List<BookComment> getBookComments() {
+	public String getHasBook() {
+		return hasBook;
+	}
+
+	public void setHasBook(String hasBook) {
+		this.hasBook = hasBook;
+	}
+
+	public String getBoughtDate() {
+		return boughtDate;
+	}
+
+	public void setBoughtDate(String boughtDate) {
+		this.boughtDate = boughtDate;
+	}
+
+	public List<BookComment> getBookComment() {
 		return bookComment;
 	}
 
-	public void setBookComments(List<BookComment> bookComment) {
+	@XmlElement
+	public void setBookComment(List<BookComment> bookComment) {
 		this.bookComment = bookComment;
 	}
 

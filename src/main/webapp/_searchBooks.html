@@ -1,21 +1,52 @@
 <h1 class="page-header">Search Book</h1>
 <div class="row">
-	<form id="searchBooksForm" action="AppController" method="GET">
-		<div class="form-row">
-			<input type="hidden" name="requestType" value="searchBooks" />
-			<div class="form-group col-sm-8 col-md-6 col-md-offset-2">
-				<input type="text" class="form-control" name="bookNameParam"
-					autocomplete="off" />
+	<div class="col-sm-7 col-md-7  col-md-offset-1">
+		<form id="searchBooksForm" action="AppController" method="GET">
+			<div class="form-row">
+				<input type="hidden" name="requestType" value="searchBooks" /> <input
+					type="hidden" id="searchParamType" name="searchParamType"
+					value="bookTitle" />
+				<div class="form-group col-sm-5 col-md-5">
+					<input type="text" class="form-control target" id="bookIdParam"
+						name="bookIdParam" placeholder="Search Book By ID"
+						autocomplete="off" />
+				</div>
+				<div class="form-group col-sm-2 col-md-2">
+					<input type="text" class="form-control center" value="OR" disabled />
+				</div>
+				<div class="form-group col-sm-5 col-md-5">
+					<input type="text" class="form-control target" id="bookTitleParam"
+						name="bookTitleParam" placeholder="Search Book By TITLE"
+						autocomplete="off" />
+				</div>
+				<div class="form-group col-sm-12 col-md-12">
+					<button type="submit" id="searchBookButton"
+						class="btn btn-primary btn-block">Search Book</button>
+				</div>
 			</div>
-			<input type="hidden" id="bookSortParam" name="bookSortParam" />
-			<div class="form-group col-sm-4 col-md-2">
-				<button type="submit" id="searchBookButton" class="btn btn-primary btn-block">Search
-					Book</button>
+		</form>
+	</div>
+	<div class="col-sm-2 col-md-2 col-md-offset-1">
+		<form id="checkBookExistForm" action="AppController" method="GET">
+			<div class="form-row">
+				<input type="hidden" name="requestType" value="checkBookExist" />
+				<div class="form-group">
+					<input type="text" class="form-control" name="bookIdParam"
+						placeholder="Check Book By ID" autocomplete="off" />
+				</div>
+				<div class="form-group">
+					<button type="submit" id="checkBookButton"
+						class="btn btn-primary btn-block">Check Book Exists</button>
+				</div>
 			</div>
-		</div>
-	</form>
+		</form>
+	</div>
 </div>
 <br>
+
+<div id="successMessage" class="center success-message"></div>
+<div id="errorMessage" class="center error-message"></div>
+
 <br>
 <div class="row">
 	<div class="col-md-12">
@@ -32,7 +63,8 @@
 		</table>
 	</div>
 </div>
-<button style="display:none" id="bookDetailsModalButton" data-toggle="modal" data-target="#bookDetailsModal"></button>
+<button style="display: none" id="bookDetailsModalButton"
+	data-toggle="modal" data-target="#bookDetailsModal"></button>
 <!-- Modal -->
 <div class="container-fluid">
 	<div class="modal fade" id="bookDetailsModal" role="dialog">
@@ -40,7 +72,8 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="center modal-title" id="bookDetailsHeader">Book Details</h4>
+					<h4 class="center modal-title" id="bookDetailsHeader">Book
+						Details</h4>
 				</div>
 				<div class="modal-body">
 					<div class="row">
@@ -52,9 +85,10 @@
 							<table id="bookDetailsTable" class="table"></table>
 							<br>
 							<form id="buyReturnForm" action="AppController" method="POST">
-								<input type="hidden" id="requestType" name="requestType" value="" />
-								<input type="hidden" id="bookIdBuyReturn" name="bookId" />
-								<input type="hidden" id="bookPriceBuyReturn" name="bookPrice" />
+								<input type="hidden" id="requestType" name="requestType"
+									value="" /> <input type="hidden" id="bookIdBuyReturn"
+									name="bookId" /> <input type="hidden" id="bookPriceBuyReturn"
+									name="bookPrice" />
 								<button type="submit" id="buyReturnButton"
 									class="btn btn-primary btn-block mb-2"></button>
 							</form>
@@ -67,7 +101,7 @@
 							<div class="row">
 								<form id="commentForm" action="AppController" method="POST">
 									<input type="hidden" name="requestType" value="postComment" />
-									<input type="hidden" id="bookIdComment"name="bookId" />
+									<input type="hidden" id="bookIdComment" name="bookId" />
 									<div class="form-group">
 										<textarea class="form-control" rows="4" id="bookComment"
 											name="bookComment"></textarea>
@@ -89,8 +123,5 @@
 		</div>
 	</div>
 </div>
-
-<div id="errorMessage" class="center error-message"></div>
-<div id="successMessage" class="center success-message"></div>
 
 <script src="resources/app/js/searchBooks.js"></script>

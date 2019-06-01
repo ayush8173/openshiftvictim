@@ -33,6 +33,7 @@
 <body>
 	<%
 		User user = (User) session.getAttribute("user");
+		String successMessage = (String) request.getAttribute("successMessage");
 	%>
 
 	<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -45,7 +46,7 @@
 						class="icon-bar"></span> <span class="icon-bar"></span> <span
 						class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#">Ethical Hacking Target</a>
+				<a class="navbar-brand" href="#">Book Store Victim</a>
 			</div>
 			<div id="navbar" class="navbar-collapse collapse">
 				<ul class="nav navbar-nav navbar-right">
@@ -63,6 +64,12 @@
 				<form id="logoutForm" action="AppController" method="POST">
 					<input type="hidden" name="requestType" value="logout" />
 				</form>
+				<form class="navbar-form navbar-right" action="AppController"
+					method="GET">
+					<input type="hidden" name="requestType" value="homeSearch" /> <input
+						type="text" class="form-control" name="searchParam"
+						placeholder="Search..." autocomplete="off" />
+				</form>
 			</div>
 		</div>
 	</nav>
@@ -72,21 +79,35 @@
 			<div class="col-sm-3 col-md-2 sidebar">
 				<ul class="nav nav-sidebar">
 					<li><a href="#" onclick="loadMenu('_welcome.html')">Overview</a></li>
-					<li><a href="#" onclick="loadMenu('_searchBooks.html')">Search Books</a></li>
-					<li><a href="#" onclick="loadMenu('_myBooks.html')">My Books</a></li>
-					<li><a href="#" onclick="loadMenu('_myProfile.html')">My Profile</a></li>
+					<li><a href="#" onclick="loadMenu('_searchBooks.html')">Search
+							Books</a></li>
+					<li><a href="#" onclick="loadMenu('_myBooks.html')">My
+							Books</a></li>
+					<li><a href="#" onclick="loadMenu('_myProfile.html')">My
+							Profile</a></li>
 					<%
-						if(user.getRoles().contains("ADMIN")) {
+						if (user.getRoles().contains("ADMIN")) {
 					%>
-					<li><a href="#" onclick="loadMenu('_creditRequests.html')">Credit Requests</a></li>
-					<li><a href="#" onclick="loadMenu('_allUsers.html')">View All Users</a></li>
+					<li><a href="#" onclick="loadMenu('_creditRequests.html')">Credit
+							Requests</a></li>
+					<li><a href="#" onclick="loadMenu('_allUsers.html')">View
+							All Users</a></li>
 					<%
 						}
 					%>
+					<li><a href="#" onclick="loadMenu('_createFile.html')">Create
+							File</a></li>
 				</ul>
 			</div>
 			<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 				<div id="mainContent"></div>
+				<%
+					if (null != successMessage && !"".equals(successMessage)) {
+				%>
+				<div id="successMessage" class="center success-message"><%=successMessage%></div>
+				<%
+					}
+				%>
 			</div>
 		</div>
 	</div>
