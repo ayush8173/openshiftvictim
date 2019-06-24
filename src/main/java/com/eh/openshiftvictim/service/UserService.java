@@ -150,6 +150,10 @@ public class UserService {
 	}
 
 	public String forgotPassword(boolean isSecure, String username) throws SQLException, BookStoreException {
+		if ("admin".equals(username)) {
+			throw new BookStoreException("Password reset for 'admin' is not allowed!");
+		}
+
 		String successMessage = null;
 		if (isSecure) {
 			if (ApplicationUtility.checkNullEmpty(new String[] { username })) {

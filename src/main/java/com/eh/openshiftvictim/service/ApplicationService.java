@@ -149,7 +149,7 @@ public class ApplicationService {
 		if (isSecure) {
 			if (ApplicationUtility.checkNullEmpty(new String[] { bookId, filename })) {
 				throw new BookStoreException("Input fields can't be null or empty!");
-			} else if (!bookId.matches("^[a-zA-Z0-9]{5}$") || !filename.matches("^[a-zA-Z0-9./]{1,100}$")) {
+			} else if (!bookId.matches("^[a-zA-Z0-9]{5}$")) {
 				throw new BookStoreException("Invalid input, please check!");
 			} else {
 				applicationDao.uploadBookImageSecure(bookId, filename);
