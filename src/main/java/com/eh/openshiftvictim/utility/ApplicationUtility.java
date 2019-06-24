@@ -120,8 +120,55 @@ public class ApplicationUtility {
 		}
 		return bookImage;
 	}
+	
+	public static boolean checkNull(String[] params) {
+		boolean nullEmpty = false;
+		for (String param : params) {
+			if (param == null) {
+				nullEmpty = true;
+				break;
+			}
+		}
+		return nullEmpty;
+	}
+
+	public static boolean checkNullEmpty(String[] params) {
+		boolean nullEmpty = false;
+		for (String param : params) {
+			if (param == null || "".equals(param)) {
+				nullEmpty = true;
+				break;
+			}
+		}
+		return nullEmpty;
+	}
+
+	public static String getAppUrl() {
+		String appUrl = null;
+		if ("LOCAL".equals(ApplicationConstants.SERVER)) {
+			appUrl = ApplicationConstants.LOCAL_URL;
+		} else if ("NTEG".equals(ApplicationConstants.SERVER)) {
+			appUrl = ApplicationConstants.NTEG_URL;
+		} else if ("OPENSHIFT".equals(ApplicationConstants.SERVER)) {
+			appUrl = ApplicationConstants.OPENSHIFT_URL;
+		}
+		return appUrl;
+	}
+
+	public static String getAccountActivationUrl(String username, String token) {
+		String appUrl = getAppUrl() + "/AppController?requestType=accountActivation&username=" + username + "&token="
+				+ token;
+		return appUrl;
+	}
+
+	public static String getPasswordResetUrl(String username, String token) {
+		String appUrl = getAppUrl() + "/AppController?requestType=passwordReset&username=" + username + "&token="
+				+ token;
+		return appUrl;
+	}
 
 	public static void main(String[] args) {
+		System.out.println("dsJHHGJ1381488jhaskjd".matches("^[a-zA-Z0-9]{1,20}$"));
 
 	}
 }

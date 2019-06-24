@@ -19,7 +19,12 @@ public class User {
 	@XStreamAlias("lastName")
 	private String lastName;
 
+	@XStreamAlias("email")
+	private String email;
+
 	private String credits;
+
+	private boolean isActive;
 
 	private List<String> roles;
 
@@ -55,12 +60,28 @@ public class User {
 		this.lastName = lastName;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
 	public String getCredits() {
 		return credits;
 	}
 
 	public void setCredits(String credits) {
 		this.credits = credits;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
 	}
 
 	public List<String> getRoles() {

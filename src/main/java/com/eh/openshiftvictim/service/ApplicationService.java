@@ -7,105 +7,203 @@ import java.util.List;
 import java.util.Map;
 
 import com.eh.openshiftvictim.dao.ApplicationDao;
+import com.eh.openshiftvictim.exception.BookStoreException;
 import com.eh.openshiftvictim.model.Book;
-import com.eh.openshiftvictim.model.CreditRequest;
-import com.eh.openshiftvictim.model.User;
+import com.eh.openshiftvictim.utility.ApplicationUtility;
 import com.eh.openshiftvictim.utility.OsValidatior;
 
 public class ApplicationService {
 	final ApplicationDao applicationDao = new ApplicationDao();
 
-	public List<Book> searchBook(boolean isBookId, String searchParam) throws SQLException {
-		List<Book> bookList = applicationDao.searchBook(isBookId, searchParam);
+	public List<Book> searchBook(boolean isSecure, boolean isBookId, String searchParam)
+			throws SQLException, BookStoreException {
+		List<Book> bookList = null;
+		if (isSecure) {
+			if (ApplicationUtility.checkNull(new String[] { searchParam })) {
+				throw new BookStoreException("Input fields can't be null!");
+			} else if (!searchParam.matches("^[a-zA-Z0-9]{0,100}$")) {
+				throw new BookStoreException("Invalid input, please check!");
+			} else {
+				bookList = applicationDao.searchBookSecure(isBookId, searchParam);
+			}
+		} else {
+			bookList = applicationDao.searchBook(isBookId, searchParam);
+		}
 		return bookList;
 	}
 
-	public boolean checkBookExist(String bookId) throws SQLException {
-		boolean bookExist = applicationDao.checkBookExist(bookId);
+	public boolean checkBookExist(boolean isSecure, String bookId) throws SQLException, BookStoreException {
+		boolean bookExist = false;
+		if (isSecure) {
+			if (ApplicationUtility.checkNullEmpty(new String[] { bookId })) {
+				throw new BookStoreException("Input fields can't be null or empty!");
+			} else if (!bookId.matches("^[a-zA-Z0-9]{5}$")) {
+				throw new BookStoreException("Invalid input, please check!");
+			} else {
+				bookExist = applicationDao.checkBookExistSecure(bookId);
+			}
+		} else {
+			bookExist = applicationDao.checkBookExist(bookId);
+		}
 		return bookExist;
 	}
 
-	public List<Book> searchUserBooks(String username, String sortBy) throws SQLException {
-		List<Book> bookList = applicationDao.searchUserBooks(username, sortBy);
+	public List<Book> searchUserBooks(boolean isSecure, String username, String sortBy)
+			throws SQLException, BookStoreException {
+		List<Book> bookList = null;
+		if (isSecure) {
+			if (ApplicationUtility.checkNullEmpty(new String[] { username })
+					|| ApplicationUtility.checkNull(new String[] { sortBy })) {
+				throw new BookStoreException("Input fields can't be null or empty!");
+			} else if (!username.matches("^[a-zA-Z0-9]{1,20}$") || (!"".equalsIgnoreCase(sortBy)
+					&& !"book_title".equalsIgnoreCase(sortBy) && !"book_author".equalsIgnoreCase(sortBy)
+							&& !"book_price".equalsIgnoreCase(sortBy) && !"bought_date".equalsIgnoreCase(sortBy))) {
+				throw new BookStoreException("Invalid input, please check!");
+			} else {
+				bookList = applicationDao.searchUserBooksSecure(username, sortBy);
+			}
+		} else {
+			bookList = applicationDao.searchUserBooks(username, sortBy);
+		}
 		return bookList;
 	}
 
-	public Book searchBookForDisplay(String bookId, String username) throws SQLException {
-		Book book = applicationDao.searchBookForDisplay(bookId, username);
+	public Book searchBookForDisplay(boolean isSecure, String bookId, String username)
+			throws SQLException, BookStoreException {
+		Book book = null;
+		if (isSecure) {
+			if (ApplicationUtility.checkNullEmpty(new String[] { bookId, username })) {
+				throw new BookStoreException("Input fields can't be null or empty!");
+			} else if (!bookId.matches("^[a-zA-Z0-9]{5}$") || !username.matches("^[a-zA-Z0-9]{1,20}$")) {
+				throw new BookStoreException("Invalid input, please check!");
+			} else {
+				book = applicationDao.searchBookForDisplaySecure(bookId, username);
+			}
+		} else {
+			book = applicationDao.searchBookForDisplay(bookId, username);
+		}
 		return book;
 	}
 
-	public void logXmlInput(String xmlInput) throws SQLException {
-		applicationDao.logXmlInput(xmlInput);
+	public void logXmlInput(boolean isSecure, String xmlInput) throws SQLException, BookStoreException {
+		if (isSecure) {
+			if (ApplicationUtility.checkNullEmpty(new String[] { xmlInput })) {
+				throw new BookStoreException("Input fields can't be null or empty!");
+			} else {
+				applicationDao.logXmlInputSecure(xmlInput);
+			}
+		} else {
+			applicationDao.logXmlInput(xmlInput);
+		}
 	}
 
-	public void postComment(Book book) throws SQLException {
-		applicationDao.postComment(book);
+	public void postComment(boolean isSecure, Book book) throws SQLException, BookStoreException {
+		if (isSecure) {
+			if (ApplicationUtility.checkNullEmpty(new String[] { book.getBookId(),
+					book.getBookComment().get(0).getCommentor(), book.getBookComment().get(0).getComment() })) {
+				throw new BookStoreException("Input fields can't be null or empty!");
+			} else if (!book.getBookId().matches("^[a-zA-Z0-9]{5}$")
+					|| !book.getBookComment().get(0).getCommentor().matches("^[a-zA-Z0-9]{1,20}$")
+					|| !book.getBookComment().get(0).getComment().matches("^[a-zA-Z0-9]{1,1000}$")) {
+				throw new BookStoreException("Invalid input, please check!");
+			} else {
+				applicationDao.postCommentSecure(book);
+			}
+		} else {
+			applicationDao.postComment(book);
+		}
 	}
 
-	public boolean buyBook(String bookId, String bookPrice, String username) throws SQLException {
-		boolean boughtStatus = applicationDao.buyBook(bookId, bookPrice, username);
-		return boughtStatus;
+	public void buyBook(boolean isSecure, String bookId, String bookPrice, String username)
+			throws SQLException, BookStoreException {
+		if (isSecure) {
+			if (ApplicationUtility.checkNullEmpty(new String[] { bookId, username })) {
+				throw new BookStoreException("Input fields can't be null or empty!");
+			} else if (!bookId.matches("^[a-zA-Z0-9]{5}$") || !username.matches("^[a-zA-Z0-9]{1,20}$")) {
+				throw new BookStoreException("Invalid input, please check!");
+			} else {
+				applicationDao.buyBookSecure(bookId, username);
+			}
+		} else {
+			applicationDao.buyBook(bookId, bookPrice, username);
+		}
 	}
 
-	public void returnBook(String bookId, String bookPrice, String username) throws SQLException {
-		applicationDao.returnBook(bookId, bookPrice, username);
+	public void returnBook(boolean isSecure, String bookId, String bookPrice, String username)
+			throws SQLException, BookStoreException {
+		if (isSecure) {
+			if (ApplicationUtility.checkNullEmpty(new String[] { bookId, username })) {
+				throw new BookStoreException("Input fields can't be null or empty!");
+			} else if (!bookId.matches("^[a-zA-Z0-9]{5}$") || !username.matches("^[a-zA-Z0-9]{1,20}$")) {
+				throw new BookStoreException("Invalid input, please check!");
+			} else {
+				applicationDao.returnBookSecure(bookId, username);
+			}
+		} else {
+			applicationDao.returnBook(bookId, bookPrice, username);
+		}
 	}
 
-	public boolean addCreditRequest(String amount, String username) throws SQLException {
-		boolean creditRequestExists = applicationDao.addCreditRequest(amount, username);
-		return creditRequestExists;
+	public void uploadBookImage(boolean isSecure, String bookId, String filename)
+			throws SQLException, FileNotFoundException, BookStoreException {
+		if (isSecure) {
+			if (ApplicationUtility.checkNullEmpty(new String[] { bookId, filename })) {
+				throw new BookStoreException("Input fields can't be null or empty!");
+			} else if (!bookId.matches("^[a-zA-Z0-9]{5}$") || !filename.matches("^[a-zA-Z0-9./]{1,100}$")) {
+				throw new BookStoreException("Invalid input, please check!");
+			} else {
+				applicationDao.uploadBookImageSecure(bookId, filename);
+			}
+		} else {
+			applicationDao.uploadBookImage(bookId, filename);
+		}
 	}
 
-	public boolean transferCredits(String amount, String toUsername, String username) throws SQLException {
-		boolean transferStatus = applicationDao.transferCredits(amount, toUsername, username);
-		return transferStatus;
-	}
-
-	public List<CreditRequest> fetchCreditRequests() throws SQLException {
-		List<CreditRequest> creditRequestList = applicationDao.fetchCreditRequests();
-		return creditRequestList;
-	}
-
-	public void processCreditRequest(String approveReject, String username) throws SQLException {
-		applicationDao.processCreditRequest(approveReject, username);
-	}
-
-	public User searchUser(String username) throws SQLException {
-		User user = applicationDao.searchUser(username);
-		return user;
-	}
-
-	public List<User> fetchAllUsers() throws SQLException {
-		List<User> userList = applicationDao.fetchAllUsers();
-		return userList;
-	}
-
-	public boolean addNewUser(User user) throws SQLException {
-		boolean userExists = applicationDao.addNewUser(user);
-		return userExists;
-	}
-
-	public void uploadBookImage(String bookId, String filename) throws SQLException, FileNotFoundException {
-		applicationDao.uploadBookImage(bookId, filename);
-	}
-
-	public Map<String, String> fetchAllFiles() throws SQLException {
-		Map<String, String> fileMap = applicationDao.fetchAllFiles();
+	public Map<String, String> fetchAllFiles(boolean isSecure) throws SQLException {
+		Map<String, String> fileMap = null;
+		if (isSecure) {
+			fileMap = applicationDao.fetchAllFilesSecure();
+		} else {
+			fileMap = applicationDao.fetchAllFiles();
+		}
 		return fileMap;
 	}
 
-	public void createFile(String jarPath, String filePath, String fileName, String username)
-			throws IOException, SQLException {
-		if (OsValidatior.isWindows()) {
-			Runtime.getRuntime().exec(new String[] { "cmd", "/C",
-					"java -jar " + jarPath + "CreateFile.jar " + filePath + " " + fileName + " " + username });
-			applicationDao.createFile(fileName);
+	public void createFile(boolean isSecure, String jarPath, String filePath, String fileName, String username)
+			throws IOException, SQLException, BookStoreException {
+		if (isSecure) {
+			if (isSecure) {
+				if (ApplicationUtility.checkNullEmpty(new String[] { username })) {
+					throw new BookStoreException("Input fields can't be null or empty!");
+				} else if (!username.matches("^[a-zA-Z0-9]{1,20}$")) {
+					throw new BookStoreException("Invalid input, please check!");
+				} else {
+					if (OsValidatior.isWindows()) {
+						Runtime.getRuntime().exec(new String[] { "cmd", "/C", "java -jar " + jarPath + "CreateFile.jar "
+								+ filePath + " " + fileName + " " + username });
+						applicationDao.createFile(fileName);
+					} else {
+						Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c", "java -jar " + jarPath
+								+ "CreateFile.jar " + filePath + " " + fileName + " " + username });
+						applicationDao.createFile(fileName);
+					}
+				}
+			}
 		} else {
-			if(username != null && username.matches("^[a-zA-Z0-9]*$")) {
-				Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c",
+			if (OsValidatior.isWindows()) {
+				Runtime.getRuntime().exec(new String[] { "cmd", "/C",
 						"java -jar " + jarPath + "CreateFile.jar " + filePath + " " + fileName + " " + username });
 				applicationDao.createFile(fileName);
+			} else {
+				if (ApplicationUtility.checkNullEmpty(new String[] { username })) {
+					throw new BookStoreException("Input fields can't be null or empty!");
+				} else if (!username.matches("^[a-zA-Z0-9]{1,20}$")) {
+					throw new BookStoreException("Invalid input, please check!");
+				} else {
+					Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c",
+							"java -jar " + jarPath + "CreateFile.jar " + filePath + " " + fileName + " " + username });
+					applicationDao.createFile(fileName);
+				}
 			}
 		}
 	}

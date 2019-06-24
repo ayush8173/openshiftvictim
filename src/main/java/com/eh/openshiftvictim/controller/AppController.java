@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,15 +22,17 @@ import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.xml.sax.SAXException;
 
+import com.eh.openshiftvictim.exception.BookStoreException;
 import com.eh.openshiftvictim.model.Book;
 import com.eh.openshiftvictim.model.BookComment;
 import com.eh.openshiftvictim.model.CreditRequest;
 import com.eh.openshiftvictim.model.User;
 import com.eh.openshiftvictim.service.ApplicationService;
-import com.eh.openshiftvictim.service.LoginService;
+import com.eh.openshiftvictim.service.UserService;
 import com.eh.openshiftvictim.utility.ApplicationUtility;
 import com.eh.openshiftvictim.utility.JaxbConvertor;
 import com.eh.openshiftvictim.utility.JsonResponse;
+import com.eh.openshiftvictim.utility.SecureGenerator;
 import com.eh.openshiftvictim.utility.XstreamConvertor;
 
 /**
@@ -37,7 +40,7 @@ import com.eh.openshiftvictim.utility.XstreamConvertor;
  */
 public class AppController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	final LoginService loginService = new LoginService();
+	final UserService userService = new UserService();
 	final ApplicationService applicationService = new ApplicationService();
 
 	/**
@@ -63,7 +66,7 @@ public class AppController extends HttpServlet {
 		final String havijBookId = request.getParameter("id");
 		if (havijBookId != null) {
 			try {
-				List<Book> bookList = applicationService.searchBook(true, havijBookId);
+				List<Book> bookList = applicationService.searchBook(false, true, havijBookId);
 				if (bookList != null && bookList.size() > 0) {
 					jsonResponse.setStatus("success");
 					jsonResponse.setData(bookList);
@@ -71,6 +74,11 @@ public class AppController extends HttpServlet {
 					jsonResponse.setStatus("failed");
 					jsonResponse.setData("Could not found any result!");
 				}
+			} catch (BookStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				jsonResponse.setStatus("failed");
+				jsonResponse.setData(e.getMessage());
 			} catch (SQLException e) {
 				jsonResponse.setStatus("failed");
 				jsonResponse.setData(e.getMessage());
@@ -107,77 +115,302 @@ public class AppController extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		User loggedInUser = null;
+		boolean isSecure = false;
 		RequestDispatcher dispatcher = null;
 		JsonResponse jsonResponse = new JsonResponse();
 		final String requestType = request.getParameter("requestType");
 
+		if (request.getSession().getAttribute("user") != null) {
+			loggedInUser = (User) request.getSession().getAttribute("user");
+		}
+		if (request.getSession().getAttribute("isSecure") != null) {
+			isSecure = (boolean) request.getSession().getAttribute("isSecure");
+		}
+
 		if ("login".equals(requestType) || "loginSql".equals(requestType) || "loginLdap".equals(requestType)
 				|| "loginXml".equals(requestType)) {
-			final String username = request.getParameter("username");
-			final String password = request.getParameter("password");
-			try {
-				User user = null;
-				if ("login".equals(requestType)) {
-					user = loginService.doLogin(username, password);
-				} else if ("loginSql".equals(requestType)) {
-					user = loginService.doLoginSql(username, password);
-				} else if ("loginLdap".equals(requestType)) {
-					user = loginService.doLoginLdap(username, password);
-				} else if ("loginXml".equals(requestType)) {
-					String xmlPath = getServletContext().getRealPath("/resources/app/xml/");
-					user = loginService.doLoginXml(xmlPath, username, password);
-				}
-				if (request.getSession(false) != null) {
-					request.getSession(false).invalidate();
-					HttpSession session = request.getSession(true);
-					if (user != null && user.getUsername() != null) {
-						session.setAttribute("user", user);
-						dispatcher = request.getRequestDispatcher("home.jsp");
-						session.setAttribute("currentPage", "home.jsp");
-					} else {
-						request.setAttribute("errorMessage", "Username or password is incorrect!");
+			if (request.getSession().getAttribute("user") != null) {
+				dispatcher = request.getRequestDispatcher("home.jsp");
+				dispatcher.forward(request, response);
+			} else {
+				final String username = request.getParameter("username");
+				final String password = request.getParameter("password");
+				final String rememberMe = request.getParameter("rememberMe");
+				final String securityType = request.getParameter("securityType");
+				isSecure = "secure".equals(securityType) ? true : false;
+
+				try {
+					User user = null;
+					if ("login".equals(requestType)) {
+						user = userService.doLogin(isSecure, username, password);
+					} else if ("loginLdap".equals(requestType)) {
+						user = userService.doLoginLdap(username, password);
+					} else if ("loginXml".equals(requestType)) {
+						String xmlPath = getServletContext().getRealPath("/resources/app/xml/");
+						user = userService.doLoginXml(xmlPath, username, password);
 					}
-				} else {
-					request.setAttribute("errorMessage",
-							"Either your browser cookie is disbled or some unknown error happened!");
+					if (request.getSession(false) != null) {
+						if (isSecure) {
+							request.getSession(false).invalidate();
+						}
+						HttpSession session = request.getSession(true);
+						if (user != null && user.getUsername() != null) {
+							session.setAttribute("user", user);
+							session.setAttribute("isSecure", isSecure);
+							dispatcher = request.getRequestDispatcher("home.jsp");
+							session.setAttribute("currentPage", "home.jsp");
+
+							if ("true".equals(rememberMe)) {
+								if (isSecure) {
+									String rememberMeCookieValue = SecureGenerator.generateSecureString(10);
+									String rememberMeCookieHash = SecureGenerator
+											.generateStringHash(rememberMeCookieValue);
+									userService.addUserToken(isSecure, user.getUsername(), "REMEMBER_ME",
+											rememberMeCookieHash);
+									Cookie usernameCookie = new Cookie("username", username);
+									Cookie rememberMeCookie = new Cookie("remember_me", rememberMeCookieValue);
+									usernameCookie.setMaxAge(604800);
+									rememberMeCookie.setMaxAge(604800);
+									response.addCookie(usernameCookie);
+									response.addCookie(rememberMeCookie);
+								} else {
+									Cookie usernameCookie = new Cookie("username", username);
+									Cookie passwordCookie = new Cookie("password", password);
+									usernameCookie.setMaxAge(604800);
+									passwordCookie.setMaxAge(604800);
+									response.addCookie(usernameCookie);
+									response.addCookie(passwordCookie);
+								}
+							}
+						} else {
+							request.setAttribute("errorMessage", "Username or password is incorrect!");
+						}
+					} else {
+						request.setAttribute("errorMessage",
+								"Either your browser cookie is disbled or some unknown error happened!");
+					}
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
+				} catch (LdapException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
+				} catch (CursorException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
+				} catch (XPathExpressionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
+				} catch (ParserConfigurationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
+				} catch (SAXException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
 				}
+				if (dispatcher == null) {
+					dispatcher = request.getRequestDispatcher("login.jsp");
+					request.getSession().setAttribute("currentPage", "login.jsp");
+				}
+				dispatcher.forward(request, response);
+			}
+		} else if ("loginBypass".equals(requestType)) {
+			if (request.getSession().getAttribute("user") != null) {
+				dispatcher = request.getRequestDispatcher("home.jsp");
+				dispatcher.forward(request, response);
+			} else {
+				final String username = request.getParameter("username");
+				final String rememberMe = request.getParameter("rememberMe");
+				final String securityType = request.getParameter("securityType");
+				isSecure = "secure".equals(securityType) ? true : false;
+
+				try {
+					if (userService.validateUserToken(isSecure, username, "REMEMBER_ME",
+							SecureGenerator.generateStringHash(rememberMe))) {
+						User user = userService.searchUser(isSecure, username);
+						if (request.getSession(false) != null) {
+							if (isSecure) {
+								request.getSession(false).invalidate();
+							}
+							HttpSession session = request.getSession(true);
+							if (user != null && user.getUsername() != null) {
+								session.setAttribute("user", user);
+								session.setAttribute("isSecure", isSecure);
+								dispatcher = request.getRequestDispatcher("home.jsp");
+								session.setAttribute("currentPage", "home.jsp");
+							} else {
+								request.setAttribute("errorMessage", "Unknown error happened! Please login again.");
+							}
+						} else {
+							request.setAttribute("errorMessage",
+									"Either your browser cookie is disbled or some unknown error happened!");
+						}
+					} else {
+						Cookie usernameCookie = new Cookie("username", "");
+						Cookie passwordCookie = new Cookie("password", "");
+						Cookie rememberMeCookie = new Cookie("remember_me", "");
+						usernameCookie.setMaxAge(0);
+						passwordCookie.setMaxAge(0);
+						rememberMeCookie.setMaxAge(0);
+						response.addCookie(usernameCookie);
+						response.addCookie(passwordCookie);
+						response.addCookie(rememberMeCookie);
+						request.getSession().invalidate();
+						request.setAttribute("errorMessage", "RememberMe token not valid! Please login again.");
+						dispatcher = request.getRequestDispatcher("login.jsp");
+						request.getSession().setAttribute("currentPage", "login.jsp");
+					}
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
+				}
+				if (dispatcher == null) {
+					dispatcher = request.getRequestDispatcher("login.jsp");
+					request.getSession().setAttribute("currentPage", "login.jsp");
+				}
+				dispatcher.forward(request, response);
+			}
+		} else if ("logout".equals(requestType)) {
+			try {
+				userService.deleteUserToken(isSecure, loggedInUser.getUsername(), "REMEMBER_ME");
+			} catch (BookStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				request.setAttribute("errorMessage", e.getMessage());
-			} catch (LdapException e) {
+			}
+			Cookie usernameCookie = new Cookie("username", "");
+			Cookie passwordCookie = new Cookie("password", "");
+			Cookie rememberMeCookie = new Cookie("remember_me", "");
+			usernameCookie.setMaxAge(0);
+			passwordCookie.setMaxAge(0);
+			rememberMeCookie.setMaxAge(0);
+			response.addCookie(usernameCookie);
+			response.addCookie(passwordCookie);
+			response.addCookie(rememberMeCookie);
+			request.getSession().invalidate();
+			request.setAttribute("logoutMessage", "You have been successfully logged out!");
+			dispatcher = request.getRequestDispatcher("login.jsp");
+			request.getSession().setAttribute("currentPage", "login.jsp");
+			dispatcher.forward(request, response);
+		} else if ("accountActivation".equals(requestType)) {
+			final String username = request.getParameter("username");
+			final String passwordResetToken = request.getParameter("token");
+			final String fromInSecure = request.getParameter("FIS");
+			try {
+				if (userService.validateAccountActivationToken(username, passwordResetToken)) {
+					if (!"Y".equalsIgnoreCase(fromInSecure)) {
+						request.getSession().setAttribute("passwordResetUsername", username);
+						request.setAttribute("logoutMessage", "Please provide your new password!");
+						dispatcher = request.getRequestDispatcher("resetPassword.jsp");
+						request.getSession().setAttribute("currentPage", "resetPassword.jsp");
+					} else {
+						request.setAttribute("logoutMessage",
+								"Your account has been successfully activated. Please login your password!");
+					}
+				} else {
+					request.setAttribute("errorMessage",
+							"Account activation reset link has expired. Please re-initiate account creation!");
+				}
+			} catch (BookStoreException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				request.setAttribute("errorMessage", e.getMessage());
-			} catch (CursorException e) {
+			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				request.setAttribute("errorMessage", e.getMessage());
-			} catch (XPathExpressionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				request.setAttribute("errorMessage", e.getMessage());
-			} catch (ParserConfigurationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				request.setAttribute("errorMessage", e.getMessage());
-			} catch (SAXException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				request.setAttribute("errorMessage", e.getMessage());
 			}
 			if (dispatcher == null) {
 				dispatcher = request.getRequestDispatcher("login.jsp");
 				request.getSession().setAttribute("currentPage", "login.jsp");
 			}
 			dispatcher.forward(request, response);
-		} else if ("logout".equals(requestType)) {
-			if (request.getSession(false) != null) {
-				request.getSession(false).invalidate();
+		} else if ("forgotPassword".equals(requestType)) {
+			final String username = request.getParameter("username");
+			final String securityType = request.getParameter("securityType");
+			boolean isSecureForgotPassword = "secure".equals(securityType) ? true : false;
+			String successMessage = null;
+			try {
+				successMessage = userService.forgotPassword(isSecureForgotPassword, username);
+				request.setAttribute("logoutMessage", successMessage);
+			} catch (BookStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			request.setAttribute("logoutMessage", "You have been successfully logged out!");
-			dispatcher = request.getRequestDispatcher("login.jsp");
-			request.getSession().setAttribute("currentPage", "login.jsp");
+			request.getSession().invalidate();
+			dispatcher = request.getRequestDispatcher("forgotPassword.jsp");
+			request.getSession().setAttribute("currentPage", "forgotPassword.jsp");
+			dispatcher.forward(request, response);
+		} else if ("passwordReset".equals(requestType)) {
+			final String username = request.getParameter("username");
+			final String passwordResetToken = request.getParameter("token");
+			try {
+				if (userService.validatePasswordResetToken(username, passwordResetToken)) {
+					request.getSession().setAttribute("passwordResetUsername", username);
+					request.setAttribute("logoutMessage", "Please provide your new password!");
+					dispatcher = request.getRequestDispatcher("resetPassword.jsp");
+					request.getSession().setAttribute("currentPage", "resetPassword.jsp");
+				} else {
+					request.setAttribute("errorMessage",
+							"Password reset link has expired. Please re-initiate password reset!");
+				}
+			} catch (BookStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (dispatcher == null) {
+				dispatcher = request.getRequestDispatcher("forgotPassword.jsp");
+				request.getSession().setAttribute("currentPage", "forgotPassword.jsp");
+			}
+			dispatcher.forward(request, response);
+		} else if ("resetPassword".equals(requestType)) {
+			final String username = (String) request.getSession().getAttribute("passwordResetUsername");
+			final String newPassword1 = request.getParameter("newPassword1");
+			final String newPassword2 = request.getParameter("newPassword2");
+			try {
+				userService.updateUserPassword(username, newPassword1, newPassword2);
+				request.setAttribute("logoutMessage",
+						"Your password has been reset successfully. Please login with your new password!");
+			} catch (BookStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				request.setAttribute("errorMessage", e.getMessage());
+				dispatcher = request.getRequestDispatcher("resetPassword.jsp");
+				request.getSession().setAttribute("currentPage", "resetPassword.jsp");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (dispatcher == null) {
+				dispatcher = request.getRequestDispatcher("login.jsp");
+				request.getSession().setAttribute("currentPage", "login.jsp");
+			}
 			dispatcher.forward(request, response);
 		} else if ("uploadBookImage".equals(requestType)) {
 			String relativeWebPath = "/resources/app/images/Books/";
@@ -186,8 +419,12 @@ public class AppController extends HttpServlet {
 			ApplicationUtility.populateBookImageMap();
 			for (String bookId : ApplicationUtility.bookImageMap.keySet()) {
 				try {
-					applicationService.uploadBookImage(bookId,
+					applicationService.uploadBookImage(isSecure, bookId,
 							absoluteDiskPath + ApplicationUtility.bookImageMap.get(bookId));
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request.setAttribute("errorMessage", e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -197,8 +434,11 @@ public class AppController extends HttpServlet {
 			final String xmlInput = request.getParameter("xmlInput");
 			final Book book = JaxbConvertor.xmlToObject(xmlInput);
 			try {
-				applicationService.logXmlInput(xmlInput);
-				applicationService.postComment(book);
+				applicationService.logXmlInput(false, xmlInput);
+				applicationService.postComment(false, book);
+			} catch (BookStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -207,8 +447,11 @@ public class AppController extends HttpServlet {
 			final String xmlInput = request.getParameter("xmlInput");
 			final User user = (User) XstreamConvertor.xmlToObject(xmlInput);
 			try {
-				applicationService.logXmlInput(xmlInput);
-				applicationService.addNewUser(user);
+				applicationService.logXmlInput(false, xmlInput);
+				userService.addNewUser(false, user, user.getPassword());
+			} catch (BookStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -242,7 +485,7 @@ public class AppController extends HttpServlet {
 							: false;
 					final String searchParam = isBookId ? request.getParameter("bookIdParam")
 							: request.getParameter("bookTitleParam");
-					List<Book> bookList = applicationService.searchBook(isBookId, searchParam);
+					List<Book> bookList = applicationService.searchBook(isSecure, isBookId, searchParam);
 					if (bookList != null && bookList.size() > 0) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(bookList);
@@ -250,6 +493,11 @@ public class AppController extends HttpServlet {
 						jsonResponse.setStatus("failed");
 						jsonResponse.setData("Could not found any result!");
 					}
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					jsonResponse.setStatus("failed");
 					jsonResponse.setData(e.getMessage());
@@ -257,7 +505,7 @@ public class AppController extends HttpServlet {
 			} else if ("checkBookExist".equals(requestType)) {
 				try {
 					final String bookId = request.getParameter("bookIdParam");
-					boolean bookExist = applicationService.checkBookExist(bookId);
+					boolean bookExist = applicationService.checkBookExist(isSecure, bookId);
 					if (bookExist) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData("Book " + bookId + " exists!");
@@ -265,16 +513,21 @@ public class AppController extends HttpServlet {
 						jsonResponse.setStatus("failed");
 						jsonResponse.setData("Book " + bookId + " doesn't exist!");
 					}
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					jsonResponse.setStatus("failed");
-					//jsonResponse.setData(e.getMessage());
+					// jsonResponse.setData(e.getMessage());
 					jsonResponse.setData("An unexpected error occured!");
 				}
 			} else if ("searchMyBooks".equals(requestType)) {
 				final String sortBy = request.getParameter("sortBy");
 				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
 				try {
-					List<Book> bookList = applicationService.searchUserBooks(username, sortBy);
+					List<Book> bookList = applicationService.searchUserBooks(isSecure, username, sortBy);
 					if (bookList != null && bookList.size() > 0) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(bookList);
@@ -282,6 +535,11 @@ public class AppController extends HttpServlet {
 						jsonResponse.setStatus("failed");
 						jsonResponse.setData("Could not found any result!");
 					}
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -290,7 +548,7 @@ public class AppController extends HttpServlet {
 				final String bookId = request.getParameter("bookId");
 				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
 				try {
-					Book book = applicationService.searchBookForDisplay(bookId, username);
+					Book book = applicationService.searchBookForDisplay(isSecure, bookId, username);
 					if (book.getBookId() != null) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(book);
@@ -298,6 +556,11 @@ public class AppController extends HttpServlet {
 						jsonResponse.setStatus("failed");
 						jsonResponse.setData("Could not found any result!");
 					}
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -307,21 +570,22 @@ public class AppController extends HttpServlet {
 				final String bookPrice = request.getParameter("bookPrice");
 				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
 				try {
-					boolean boughtStatus = true;
 					if ("buyBook".equals(requestType)) {
-						boughtStatus = applicationService.buyBook(bookId, bookPrice, username);
+						applicationService.buyBook(isSecure, bookId, bookPrice, username);
 					} else {
-						applicationService.returnBook(bookId, bookPrice, username);
+						applicationService.returnBook(isSecure, bookId, bookPrice, username);
 					}
 
-					Book book = applicationService.searchBookForDisplay(bookId, username);
-					if (book.getBookId() != null && boughtStatus) {
+					Book book = applicationService.searchBookForDisplay(isSecure, bookId, username);
+					if (book.getBookId() != null) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(book);
-					} else {
-						jsonResponse.setStatus("failed");
-						jsonResponse.setData("You don't have sufficient credit to buy this book!");
 					}
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -341,8 +605,8 @@ public class AppController extends HttpServlet {
 				bookWithComment.setBookId(bookId);
 				bookWithComment.setBookComment(bookComments);
 				try {
-					applicationService.postComment(bookWithComment);
-					Book book = applicationService.searchBookForDisplay(bookId, username);
+					applicationService.postComment(isSecure, bookWithComment);
+					Book book = applicationService.searchBookForDisplay(isSecure, bookId, username);
 					if (book.getBookId() != null) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(book);
@@ -350,6 +614,11 @@ public class AppController extends HttpServlet {
 						jsonResponse.setStatus("failed");
 						jsonResponse.setData("Could not found any result!");
 					}
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -357,7 +626,7 @@ public class AppController extends HttpServlet {
 			} else if ("fetchMyProfile".equals(requestType)) {
 				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
 				try {
-					User user = applicationService.searchUser(username);
+					User user = userService.searchUser(isSecure, username);
 					if (user != null) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(user);
@@ -365,22 +634,11 @@ public class AppController extends HttpServlet {
 						jsonResponse.setStatus("failed");
 						jsonResponse.setData("Could not found any result!");
 					}
-				} catch (SQLException e) {
+				} catch (BookStoreException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
-			} else if ("requestCredits".equals(requestType)) {
-				final String amount = request.getParameter("amount");
-				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
-				try {
-					boolean creditRequestExists = applicationService.addCreditRequest(amount, username);
-					if (!creditRequestExists) {
-						jsonResponse.setStatus("success");
-						jsonResponse.setData("Credit request created successfully!");
-					} else {
-						jsonResponse.setStatus("failed");
-						jsonResponse.setData("A pending credit request already exists!");
-					}
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -389,23 +647,39 @@ public class AppController extends HttpServlet {
 				final String toUsername = request.getParameter("toUsername");
 				final String amount = request.getParameter("amount");
 				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				final String password = request.getParameter("password");
 				try {
-					boolean transferStatus = applicationService.transferCredits(amount, toUsername, username);
-					if (transferStatus) {
-						jsonResponse.setStatus("success");
-						jsonResponse.setData("Credit transferred successfully!");
-					} else {
-						jsonResponse.setStatus("failed");
-						jsonResponse.setData(
-								"Either username doesn't exists or you don't have required credits to transfer!");
-					}
+					userService.transferCredits(isSecure, amount, toUsername, username, password);
+					jsonResponse.setStatus("success");
+					jsonResponse.setData("Credit transferred successfully!");
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else if ("requestCredits".equals(requestType)) {
+				final String amount = request.getParameter("amount");
+				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				try {
+					userService.addCreditRequest(isSecure, amount, username);
+					jsonResponse.setStatus("success");
+					jsonResponse.setData("Credit request created successfully!");
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} else if ("fetchCreditRequests".equals(requestType)) {
 				try {
-					List<CreditRequest> creditRequestList = applicationService.fetchCreditRequests();
+					List<CreditRequest> creditRequestList = userService.fetchCreditRequests(isSecure);
 					if (creditRequestList != null && creditRequestList.size() > 0) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(creditRequestList);
@@ -422,14 +696,19 @@ public class AppController extends HttpServlet {
 						: "REJECTED";
 				final String username = request.getParameter("username");
 				try {
-					applicationService.processCreditRequest(approveReject, username);
+					userService.processCreditRequest(isSecure, approveReject, username);
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} else if ("fetchAllUsers".equals(requestType)) {
 				try {
-					List<User> userList = applicationService.fetchAllUsers();
+					List<User> userList = userService.fetchAllUsers(isSecure);
 					if (userList != null && userList.size() > 0) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(userList);
@@ -447,22 +726,23 @@ public class AppController extends HttpServlet {
 				cuUser.setPassword(request.getParameter("cuPassword"));
 				cuUser.setFirstName(request.getParameter("cuFirstName"));
 				cuUser.setLastName(request.getParameter("cuLastName"));
+				cuUser.setEmail(request.getParameter("cuEmail"));
 				try {
-					boolean userExists = applicationService.addNewUser(cuUser);
-					if (!userExists) {
-						jsonResponse.setStatus("success");
-						jsonResponse.setData("User with username " + cuUser.getUsername() + " created successfully!");
-					} else {
-						jsonResponse.setStatus("failed");
-						jsonResponse.setData("User with username " + cuUser.getUsername() + " already exists!");
-					}
+					userService.addNewUser(isSecure, cuUser, request.getParameter("cuPassword2"));
+					jsonResponse.setStatus("success");
+					jsonResponse.setData("User with username '" + cuUser.getUsername() + "' created successfully!");
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} else if ("fetchAllFiles".equals(requestType)) {
 				try {
-					Map<String, String> fileMap = applicationService.fetchAllFiles();
+					Map<String, String> fileMap = applicationService.fetchAllFiles(isSecure);
 					if (fileMap != null && fileMap.size() > 0) {
 						jsonResponse.setStatus("success");
 						jsonResponse.setData(fileMap);
@@ -480,15 +760,15 @@ public class AppController extends HttpServlet {
 				final String fileName = Long.toString((new Date()).getTime()) + ".txt";
 				final String username = request.getParameter("username");
 				try {
-					applicationService.createFile(absoluteDiskJarsPath, absoluteDiskTempPath, fileName, username);
-					Map<String, String> fileMap = applicationService.fetchAllFiles();
-					if (fileMap != null && fileMap.size() > 0) {
-						jsonResponse.setStatus("success");
-						jsonResponse.setData(fileMap);
-					} else {
-						jsonResponse.setStatus("failed");
-						jsonResponse.setData("Could not found any result!");
-					}
+					applicationService.createFile(isSecure, absoluteDiskJarsPath, absoluteDiskTempPath, fileName,
+							username);
+					jsonResponse.setStatus("success");
+					jsonResponse.setData("File with file name " + fileName + " successfully created!");
+				} catch (BookStoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					jsonResponse.setStatus("failed");
+					jsonResponse.setData(e.getMessage());
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

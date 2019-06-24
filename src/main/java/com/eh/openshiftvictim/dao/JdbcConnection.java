@@ -13,9 +13,9 @@ import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-public class JdbcConnection {
+import com.eh.openshiftvictim.utility.ApplicationConstants;
 
-	public static boolean isOpenshift = true;
+public class JdbcConnection {
 
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
@@ -28,7 +28,7 @@ public class JdbcConnection {
 	public Connection openConnection() {
 		Connection connection = null;
 		try {
-			if (isOpenshift) {
+			if ("OPENSHIFT".equals(ApplicationConstants.SERVER)) {
 				DataSource dataSource = lookupDataSource();
 				connection = dataSource.getConnection();
 			} else {

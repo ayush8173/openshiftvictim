@@ -5,6 +5,12 @@
 	
 	fetchMyProfile();
 	
+	$('#transferCreditModal').on('show.bs.modal', function () {
+		if($("#htmlSecurityType").val() != "secure") {
+			$("input[name='password']").hide();
+		}
+	});
+	
 	$('#transferCreditModal').on('hidden.bs.modal', function () {
 		fetchMyProfile();
 	});
@@ -72,6 +78,8 @@ function fetchMyProfile() {
 						+ encodeHtml(user.username) + "</td></tr>"
 						+ "<tr><th class='center'>Name</th><td class='center'>"
 						+ encodeHtml(user.firstName) + " " + encodeHtml(user.lastName) + "</td></tr>"
+						+ "<tr><th class='center'>Email</th><td class='center'>"
+						+ encodeHtml(user.email) + "</td></tr>"
 						+ "<tr><th class='center'>Credits</th><td class='center'>₹ "
 						+ encodeHtml(user.credits) + " /-</td></tr>"
 				);

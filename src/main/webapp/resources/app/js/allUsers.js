@@ -5,6 +5,13 @@
 	
 	showAllUsers();
 	
+	$('#createUserModal').on('show.bs.modal', function () {
+		if($("#htmlSecurityType").val() == "secure") {
+			$("input[name='cuPassword']").hide();
+			$("input[name='cuPassword2']").hide();
+		}
+	});
+	
 	$('#createUserModal').on('hidden.bs.modal', function () {
 		showAllUsers();
 	});
@@ -56,6 +63,8 @@ function showAllUsers() {
 							+ encodeHtml(userList[i].firstName)
 							+ "</td><td>"
 							+ encodeHtml(userList[i].lastName)
+							+ "</td><td>"
+							+ encodeHtml(userList[i].email)
 							+ "</td><td>₹ "
 							+ encodeHtml(userList[i].credits)
 							+ " /-</td></tr>"

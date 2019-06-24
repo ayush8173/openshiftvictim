@@ -49,7 +49,7 @@ public class ApplicationFilter implements Filter {
 		String file = req.getServletPath();
 
 		if (!("/login.jsp".equals(file) || "/loginSql.jsp".equals(file) || "/loginLdap.jsp".equals(file)
-				|| "/loginXml.jsp".equals(file))
+				|| "/loginXml.jsp".equals(file) || "/forgotPassword.jsp".equals(file) || "/resetPassword.jsp".equals(file))
 				&& ((HttpServletRequest) request).getSession().getAttribute("user") == null) {
 			if (file != null && file.endsWith(".html") && "XMLHttpRequest".equals(req.getHeader("X-Requested-With"))) {
 				PrintWriter out = response.getWriter();

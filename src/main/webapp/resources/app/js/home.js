@@ -21,7 +21,7 @@ $(document).ready(function() {
 				}
 			}
 		});
-	},10000);
+	},3600000);
 });
 
 // function displaybook(bookId) {

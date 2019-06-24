@@ -2,16 +2,18 @@
 <Users>
 	<User id="1">
 		<username>admin</username>
-		<password>admin</password>
+		<password>8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918</password>
 		<firstName>Root</firstName>
 		<lastName>Admin</lastName>
+		<email>bookstorevictim@gmail.com</email>
 		<credits>0</credits>
 	</User>
 	<User id="2">
 		<username>siddhant</username>
-		<password>siddhant</password>
+		<password>b6ad47e09c6f34fce3cfab36f06139affa8c0ca15807b52d73975cd266c1dbc0</password>
 		<firstName>Siddhant</firstName>
 		<lastName>Singh</lastName>
+		<email>siddhant.singh@nagarro.com</email>
 		<credits>0</credits>
 	</User>
 </Users>

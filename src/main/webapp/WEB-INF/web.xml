@@ -46,11 +46,13 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
   <session-config>
-    <session-timeout>30</session-timeout>
+    <session-timeout>5</session-timeout> <!-- 30 minutes -->
     <cookie-config>
       <http-only>false</http-only>
       <secure>false</secure>
+      <max-age>86400</max-age> <!-- 86400 seconds = 24 hours -->
     </cookie-config>
+    <!-- <tracking-mode>URL</tracking-mode> -->
     <tracking-mode>COOKIE</tracking-mode>
   </session-config>
 </web-app>

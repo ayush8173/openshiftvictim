@@ -5,11 +5,12 @@ var fileDir = location.protocol + '//' + location.host + '/BookStoreVictim/resou
 	$("#errorMessage").html("");
 	$("#successMessage").html("");
 	
-	showAllFiles('');
+	showAllFiles();
 
 	$("#createFileForm").submit(function(e) {
 		$("#errorMessage").html("");
 		$("#successMessage").html("");
+		$("#fileTable").hide();
 		$('#fileTable tbody').empty();
 		var form = $(this);
 		var url = form.attr('action');
@@ -20,20 +21,11 @@ var fileDir = location.protocol + '//' + location.host + '/BookStoreVictim/resou
 			data : form.serialize(),
 			success : function(response) {
 				if (response.status == "success") {
-					var fileMap = response.data;
-					for (var fileName in fileMap) {
-						$("#fileTable tbody").append("<tr><td><a href='" 
-								+ fileDir + encodeHtml(fileName) + "' target='_blank'>"
-								+ encodeHtml(fileName) + "</a>"
-								+ "</td><td>"
-								+ encodeHtml(fileMap[fileName])
-								+ "</td></tr>"
-						);
-					}
-					$("#fileTable").show();
+					$("#successMessage").html(encodeHtml(response.data));
 				} else {
 					$("#errorMessage").html(encodeHtml(response.data));
 				}
+				setTimeout(function(){showAllFiles()},2000);
 			},
 			error : function(xhr) {
 				if(xhr.status == 401) {

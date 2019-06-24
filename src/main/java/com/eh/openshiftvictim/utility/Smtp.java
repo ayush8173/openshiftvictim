@@ -19,21 +19,53 @@ import javax.mail.internet.MimeMultipart;
 
 public class Smtp {
 
-	public static void sendCookieEmail(String subject, String message) {
+	public static void sendForgotPasswordEmail(String mailTo, String newPassword) {
+		String subject = "BookStoreVictim - Password Reset (insecure)";
+		String message = "Dear User,<br><br> Either you or someone made password reset request for your account.<br>We have reset your password and your new password is: "
+				+ newPassword + "<br><br>Kind Regards,<br>BookStoreVictim";
+		sendAccountEmail(mailTo, subject, message);
+	}
+
+	public static void sendForgotPasswordEmailSecure(boolean userExists, String mailTo, String resetLink) {
+		String subject = "BookStoreVictim - Password Reset (secure)";
+		String message = null;
+		if (userExists) {
+			message = "Dear User,<br><br> Either you or someone made password reset request for your account. If it was you, then please follow the below link to reset your password!<br><br>"
+					+ resetLink + "<br><br>Kind Regards,<br>BookStoreVictim";
+		} else {
+			message = "Dear User,<br><br> Either you or someone made password reset request for your account.<br>However, we couldn't found any account linked with this email address. So please ignore this email!<br><br>Kind Regards,<br>BookStoreVictim";
+		}
+		sendAccountEmail(mailTo, subject, message);
+	}
+
+	public static void sendAccountActivationEmail(String mailTo, String username, String activationLink) {
+		String subject = "BookStoreVictim - Account Activation (insecure)";
+		String message = "Dear User,<br><br> An user account with username '" + username
+				+ "' has been created for you. Please follow the below link to activate your account!<br><br>"
+				+ activationLink + "<br><br>Kind Regards,<br>BookStoreVictim";
+		sendAccountEmail(mailTo, subject, message);
+	}
+
+	public static void sendAccountActivationEmailSecure(String mailTo, String username, String activationLink) {
+		String subject = "BookStoreVictim - Account Activation (secure)";
+		String message = "Dear User,<br><br> An user account with username '" + username
+				+ "' has been created for you. Please follow the below link to set your password and access your account!<br><br>"
+				+ activationLink + "<br><br>Kind Regards,<br>BookStoreVictim";
+		sendAccountEmail(mailTo, subject, message);
+	}
+
+	public static void sendAccountEmail(String mailTo, String subject, String message) {
 		// SMTP info
 		String host = "smtp.gmail.com";
 		String port = "587";
-		String mailFrom = "ethicalhacker8173@gmail.com";
+		String mailFrom = "bookstorevictim@gmail.com";
 		String password = "siddhant1991";
-
-		// message info
-		String mailTo = "ethicalhacker8173@gmail.com";
 
 		try {
 			sendEmailWithAttachments(host, port, mailFrom, password, mailTo, subject, message, null);
-			System.out.println("Cookie email sent!");
+			System.out.println("Account email sent!");
 		} catch (Exception ex) {
-			System.out.println("Could not send cookie email!");
+			System.out.println("Could not send account email!");
 			ex.printStackTrace();
 		}
 	}
@@ -105,11 +137,13 @@ public class Smtp {
 		// SMTP info
 		String host = "smtp.gmail.com";
 		String port = "587";
-		String mailFrom = "your-email-address";
-		String password = "your-email-password";
+		// String mailFrom = "your-email-address";
+		// String password = "your-email-password";
+		String mailFrom = "bookstorevictim@gmail.com";
+		String password = "siddhant1991";
 
 		// message info
-		String mailTo = "your-friend-email";
+		String mailTo = "ayush8173@gmail.com";
 		String subject = "New email with attachments";
 		String message = "I have some attachments for you.";
 
@@ -120,7 +154,9 @@ public class Smtp {
 		attachFiles[2] = "e:/Test/Video.mp4";
 
 		try {
-			sendEmailWithAttachments(host, port, mailFrom, password, mailTo, subject, message, attachFiles);
+			// sendEmailWithAttachments(host, port, mailFrom, password, mailTo,
+			// subject, message, null);
+			sendForgotPasswordEmailSecure(false, "ayush8173@gmail.com", "https://google.com/");
 			System.out.println("Email sent.");
 		} catch (Exception ex) {
 			System.out.println("Could not send email.");

@@ -36,34 +36,37 @@
 				if (response.status == "success") {
 					var bookList = response.data;
 					for (var i = 0; i < bookList.length; i++) {
-						$("#bookTable tbody").append("<tr><td>" 
-								+ bookList[i].bookId
-								+ "</td><td><a href='#' onclick='viewBook(\""
-								+ bookList[i].bookId + "\")'>"
-								+ bookList[i].bookTitle + "</a>"
-								+ "</td><td>"
-								+ bookList[i].bookAuthor
-								+ "</td><td>₹ "
-								+ bookList[i].bookPrice
-								+ " /-</td></tr>"
-						);
-//						$("#bookTable tbody").append("<tr><td>" 
-//								+ encodeHtml(bookList[i].bookId)
-//								+ "</td><td><a href='#' onclick='viewBook(\""
-//								+ encodeHtml(bookList[i].bookId) + "\")'>"
-//								+ encodeHtml(bookList[i].bookTitle) + "</a>"
-//								+ "</td><td>"
-//								+ encodeHtml(bookList[i].bookAuthor)
-//								+ "</td><td>₹ "
-//								+ encodeHtml(bookList[i].bookPrice)
-//								+ " /-</td></tr>"
-//						);
+						if($("#htmlSecurityType").val() == "secure") {
+							$("#bookTable tbody").append("<tr><td>" 
+									+ encodeHtml(bookList[i].bookId)
+									+ "</td><td><a href='#' onclick='viewBook(\""
+									+ encodeHtml(bookList[i].bookId) + "\")'>"
+									+ encodeHtml(bookList[i].bookTitle) + "</a>"
+									+ "</td><td>"
+									+ encodeHtml(bookList[i].bookAuthor)
+									+ "</td><td>₹ "
+									+ encodeHtml(bookList[i].bookPrice)
+									+ " /-</td></tr>"
+							);
+						} else {
+							$("#bookTable tbody").append("<tr><td>" 
+									+ bookList[i].bookId
+									+ "</td><td><a href='#' onclick='viewBook(\""
+									+ bookList[i].bookId + "\")'>"
+									+ bookList[i].bookTitle + "</a>"
+									+ "</td><td>"
+									+ bookList[i].bookAuthor
+									+ "</td><td>₹ "
+									+ bookList[i].bookPrice
+									+ " /-</td></tr>"
+							);
+						}
 					}
 					$("#bookTable").show();
-					$("#successMessage").html("Showing data for '" + $("#bookIdParam").val() + $("#bookTitleParam").val() + "'");
+//					$("#successMessage").html("Showing data for '" + $("#bookIdParam").val() + $("#bookTitleParam").val() + "'");
 //					$("#successMessage").html(encodeHtml("Showing data for '" + $("#bookIdParam").val() + $("#bookTitleParam").val() + "'"));
 				} else {
-					$("#successMessage").html("Showing data for '" + $("#bookIdParam").val() + $("#bookTitleParam").val() + "'");
+//					$("#successMessage").html("Showing data for '" + $("#bookIdParam").val() + $("#bookTitleParam").val() + "'");
 //					$("#successMessage").html(encodeHtml("Showing data for '" + $("#bookIdParam").val() + $("#bookTitleParam").val() + "'"));
 					$("#errorMessage").html(encodeHtml(response.data));
 				}
@@ -162,18 +165,22 @@
 					var bookComments = book.bookComment;
 					for (var i = 0; i < bookComments.length; i++) {
 						for (var i = 0; i < bookComments.length; i++) {
-							$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-									+ bookComments[i].commentDate + "] "
-									+ bookComments[i].commentor + " - "
-									+ bookComments[i].comment
-									+ "</div>"
-							);
-//							$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-//									+ encodeHtml(bookComments[i].commentDate) + "] "
-//									+ encodeHtml(bookComments[i].commentor) + " - "
-//									+ encodeHtml(bookComments[i].comment)
-//									+ "</div>"
-//							);
+							if($("#htmlSecurityType").val() == "secure") {
+								$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+										+ encodeHtml(bookComments[i].commentDate) + "] "
+										+ encodeHtml(bookComments[i].commentor) + " - "
+										+ encodeHtml(bookComments[i].comment)
+										+ "</div>"
+								);
+							} else {
+								$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+										+ bookComments[i].commentDate + "] "
+										+ bookComments[i].commentor + " - "
+										+ bookComments[i].comment
+										+ "</div>"
+								);
+							}
+
 						}
 					}
 				}
@@ -232,18 +239,21 @@ function viewBook(bookId) {
 				$("#bookIdComment").val(encodeHtml(book.bookId));
 				var bookComments = book.bookComment;
 				for (var i = 0; i < bookComments.length; i++) {
-					$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-							+ bookComments[i].commentDate + "] "
-							+ bookComments[i].commentor + " - "
-							+ bookComments[i].comment
-							+ "</div>"
-					);
-//					$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-//							+ encodeHtml(bookComments[i].commentDate) + "] "
-//							+ encodeHtml(bookComments[i].commentor) + " - "
-//							+ encodeHtml(bookComments[i].comment)
-//							+ "</div>"
-//					);
+					if($("#htmlSecurityType").val() == "secure") {
+						$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+								+ encodeHtml(bookComments[i].commentDate) + "] "
+								+ encodeHtml(bookComments[i].commentor) + " - "
+								+ encodeHtml(bookComments[i].comment)
+								+ "</div>"
+						);
+					} else {
+						$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+								+ bookComments[i].commentDate + "] "
+								+ bookComments[i].commentor + " - "
+								+ bookComments[i].comment
+								+ "</div>"
+						);
+					}
 				}
 				$("#bookDetailsModalButton").click();
 			}

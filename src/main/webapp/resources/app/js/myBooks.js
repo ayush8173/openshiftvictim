@@ -63,18 +63,21 @@
 					var bookComments = book.bookComment;
 					for (var i = 0; i < bookComments.length; i++) {
 						for (var i = 0; i < bookComments.length; i++) {
-							$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-									+ bookComments[i].commentDate + "] "
-									+ bookComments[i].commentor + " - "
-									+ bookComments[i].comment
-									+ "</div>"
-							);
-//							$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-//									+ encodeHtml(bookComments[i].commentDate) + "] "
-//									+ encodeHtml(bookComments[i].commentor) + " - "
-//									+ encodeHtml(bookComments[i].comment)
-//									+ "</div>"
-//							);
+							if($("#htmlSecurityType").val() == "secure") {
+								$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+										+ encodeHtml(bookComments[i].commentDate) + "] "
+										+ encodeHtml(bookComments[i].commentor) + " - "
+										+ encodeHtml(bookComments[i].comment)
+										+ "</div>"
+								);
+							} else {
+								$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+										+ bookComments[i].commentDate + "] "
+										+ bookComments[i].commentor + " - "
+										+ bookComments[i].comment
+										+ "</div>"
+								);
+							}
 						}
 					}
 				}
@@ -166,18 +169,21 @@ function viewBook(bookId) {
 				$("#bookIdComment").val(encodeHtml(book.bookId));
 				var bookComments = book.bookComment;
 				for (var i = 0; i < bookComments.length; i++) {
-					$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-							+ bookComments[i].commentDate + "] "
-							+ bookComments[i].commentor + " - "
-							+ bookComments[i].comment
-							+ "</div>"
-					);
-//					$("#bookComments").append("<div class='panel panel-default panel-footer'>["
-//							+ encodeHtml(bookComments[i].commentDate) + "] "
-//							+ encodeHtml(bookComments[i].commentor) + " - "
-//							+ encodeHtml(bookComments[i].comment)
-//							+ "</div>"
-//					);
+					if($("#htmlSecurityType").val() == "secure") {
+						$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+								+ encodeHtml(bookComments[i].commentDate) + "] "
+								+ encodeHtml(bookComments[i].commentor) + " - "
+								+ encodeHtml(bookComments[i].comment)
+								+ "</div>"
+						);
+					} else {
+						$("#bookComments").append("<div class='panel panel-default panel-footer'>["
+								+ bookComments[i].commentDate + "] "
+								+ bookComments[i].commentor + " - "
+								+ bookComments[i].comment
+								+ "</div>"
+						);
+					}
 				}
 				$("#bookDetailsModalButton").click();
 			}

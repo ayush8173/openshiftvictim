@@ -34,6 +34,7 @@
 	<%
 		User user = (User) session.getAttribute("user");
 		String successMessage = (String) request.getAttribute("successMessage");
+		boolean isSecure = (boolean) session.getAttribute("isSecure");
 	%>
 
 	<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -86,7 +87,7 @@
 					<li><a href="#" onclick="loadMenu('_myProfile.html')">My
 							Profile</a></li>
 					<%
-						if (user.getRoles().contains("ADMIN")) {
+						if (user.getRoles().contains("APP_ADMIN")) {
 					%>
 					<li><a href="#" onclick="loadMenu('_creditRequests.html')">Credit
 							Requests</a></li>
@@ -103,14 +104,32 @@
 				<div id="mainContent"></div>
 				<%
 					if (null != successMessage && !"".equals(successMessage)) {
+						if (isSecure) {
+							String successMessageEncoded = Encode.forHtmlContent(successMessage);
+				%>
+				<div id="successMessage" class="center success-message"><%=successMessageEncoded%></div>
+				<%
+					} else {
 				%>
 				<div id="successMessage" class="center success-message"><%=successMessage%></div>
 				<%
+					}
 					}
 				%>
 			</div>
 		</div>
 	</div>
+	<%
+		if (isSecure) {
+	%>
+	<input type="hidden" id="htmlSecurityType" value="secure" />
+	<%
+		} else {
+	%>
+	<input type="hidden" id="htmlSecurityType" value="insecure" />
+	<%
+		}
+	%>
 
 	<!-- Bootstrap core JavaScript - Placed at the end of the document so the pages load faster -->
 	<script src="resources/lib/js/jquery.min.js"></script>

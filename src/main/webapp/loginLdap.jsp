@@ -86,6 +86,6 @@
 	<!-- Bootstrap core JavaScript - Placed at the end of the document so the pages load faster -->
 	<script src="resources/lib/js/jquery.min.js"></script>
 	<script src="resources/lib/js/bootstrap.min.js"></script>
-	<script src="resources/app/js/login.js"></script>
+	<!-- <script src="resources/app/js/login.js"></script> -->
 </body>
 </html>
