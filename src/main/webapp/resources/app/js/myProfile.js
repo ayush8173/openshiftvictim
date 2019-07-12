@@ -24,7 +24,7 @@
 		$.ajax({
 			type : method,
 			url : url,
-			data : form.serialize(),
+			data : form.serialize() + csrfTokenParam,
 			success : function(response) {
 				alert(response.status + " : " + response.data);
 			},
@@ -46,7 +46,7 @@
 		$.ajax({
 			type : method,
 			url : url,
-			data : form.serialize(),
+			data : form.serialize() + csrfTokenParam,
 			success : function(response) {
 				alert(response.status + " : " + response.data);
 			},
@@ -67,10 +67,18 @@ function fetchMyProfile() {
 	$("#myProfileTable").hide();
 	$("#myProfileTable").empty();
 	
+	var usernameParam;
+	
+	if($("#htmlSecurityType").val() != "secure") {
+		usernameParam = "&username=" + $("#loggedInUsername").val();
+	} else {
+		usernameParam = "";
+	}
+	
 	$.ajax({
 		type : 'POST',
 		url : 'AppController',
-		data : 'requestType=fetchMyProfile',
+		data : 'requestType=fetchMyProfile' + usernameParam,
 		success : function(response) {
 			if (response.status == "success") {
 				var user = response.data;

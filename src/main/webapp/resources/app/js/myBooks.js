@@ -18,7 +18,7 @@
 		$.ajax({
 			type : method,
 			url : url,
-			data : form.serialize(),
+			data : form.serialize() + csrfTokenParam,
 			success : function(response) {
 				if (response.status == "success") {
 					var book = response.data;
@@ -51,7 +51,7 @@
 		$.ajax({
 			type : method,
 			url : url,
-			data : form.serialize(),
+			data : form.serialize() + csrfTokenParam,
 			success : function(response) {
 				$("#bookComment").val("");
 				$("#bookComments").html("");

@@ -120,7 +120,7 @@ public class ApplicationUtility {
 		}
 		return bookImage;
 	}
-	
+
 	public static boolean checkNull(String[] params) {
 		boolean nullEmpty = false;
 		for (String param : params) {
@@ -141,6 +141,50 @@ public class ApplicationUtility {
 			}
 		}
 		return nullEmpty;
+	}
+
+	public static boolean checkAdminFile(String file) {
+		boolean isAdminFile = false;
+		if (file != null) {
+			String[] adminFiles = new String[] { "_creditRequests.html", "creditRequests.js", "_allUsers.html",
+					"allUsers.js" };
+			for (String adminFile : adminFiles) {
+				if (file.endsWith(adminFile)) {
+					isAdminFile = true;
+					break;
+				}
+			}
+		}
+		return isAdminFile;
+	}
+
+	public static boolean checkAdminRequest(String requestType) {
+		boolean isAdminRequest = false;
+		if (requestType != null) {
+			String[] adminRequests = new String[] { "processCreditRequests", "fetchAllUsers", "createUser" };
+			for (String adminRequest : adminRequests) {
+				if (adminRequest.equals(requestType)) {
+					isAdminRequest = true;
+					break;
+				}
+			}
+		}
+		return isAdminRequest;
+	}
+
+	public static boolean checkCsrfRequest(String requestType) {
+		boolean isCsrfRequest = false;
+		if (requestType != null) {
+			String[] csrfRequests = new String[] { "buyBook", "returnBook", "postComment", "requestCredits",
+					"transferCredits", "processCreditRequests", "createUser", "createFile" };
+			for (String csrfRequest : csrfRequests) {
+				if (csrfRequest.equals(requestType)) {
+					isCsrfRequest = true;
+					break;
+				}
+			}
+		}
+		return isCsrfRequest;
 	}
 
 	public static String getAppUrl() {

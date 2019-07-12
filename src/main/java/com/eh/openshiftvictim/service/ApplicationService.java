@@ -57,7 +57,7 @@ public class ApplicationService {
 				throw new BookStoreException("Input fields can't be null or empty!");
 			} else if (!username.matches("^[a-zA-Z0-9]{1,20}$") || (!"".equalsIgnoreCase(sortBy)
 					&& !"book_title".equalsIgnoreCase(sortBy) && !"book_author".equalsIgnoreCase(sortBy)
-							&& !"book_price".equalsIgnoreCase(sortBy) && !"bought_date".equalsIgnoreCase(sortBy))) {
+					&& !"book_price".equalsIgnoreCase(sortBy) && !"bought_date".equalsIgnoreCase(sortBy))) {
 				throw new BookStoreException("Invalid input, please check!");
 			} else {
 				bookList = applicationDao.searchUserBooksSecure(username, sortBy);
@@ -104,7 +104,8 @@ public class ApplicationService {
 				throw new BookStoreException("Input fields can't be null or empty!");
 			} else if (!book.getBookId().matches("^[a-zA-Z0-9]{5}$")
 					|| !book.getBookComment().get(0).getCommentor().matches("^[a-zA-Z0-9]{1,20}$")
-					|| !book.getBookComment().get(0).getComment().matches("^[a-zA-Z0-9]{1,1000}$")) {
+					|| !book.getBookComment().get(0).getComment()
+							.matches("^[a-zA-Z0-9 !@#$%&*()-+_={}|:;?,.]{1,1000}$")) {
 				throw new BookStoreException("Invalid input, please check!");
 			} else {
 				applicationDao.postCommentSecure(book);

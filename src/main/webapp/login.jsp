@@ -92,8 +92,8 @@
 							type="hidden" id="lbRememberMe" name="rememberMe" value="" /> <input
 							type="hidden" id="lbSecurityType" name="securityType"
 							value="secure" />
-						<button type="submit" id="lbSubmit" name="submit"
-							style="display: none;" value="submit"></button>
+						<button type="submit" class="hidden" id="lbSubmit" name="submit"
+							value="submit"></button>
 					</form>
 				</div>
 			</div>

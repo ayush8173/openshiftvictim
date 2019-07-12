@@ -18,7 +18,7 @@ var fileDir = location.protocol + '//' + location.host + '/BookStoreVictim/resou
 		$.ajax({
 			type : method,
 			url : url,
-			data : form.serialize(),
+			data : form.serialize() + csrfTokenParam,
 			success : function(response) {
 				if (response.status == "success") {
 					$("#successMessage").html(encodeHtml(response.data));

@@ -469,7 +469,8 @@ public class UserDao extends SqlQueries {
 	// ========================================================================================
 
 	public void updateUserAccountStatus(String username, boolean status) throws SQLException {
-		final String SQL_QUERY = "update USERS set ACCOUNT_STATUS = '" + status + "' where USERNAME = '" + username + "'";
+		final String SQL_QUERY = "update USERS set ACCOUNT_STATUS = '" + status + "' where USERNAME = '" + username
+				+ "'";
 		connection = jdbcConnection.openConnection();
 		preparedStatement = connection.prepareStatement(SQL_QUERY);
 		preparedStatement.executeUpdate();

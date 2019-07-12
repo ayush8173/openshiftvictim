@@ -25,7 +25,7 @@
 		$.ajax({
 			type : method,
 			url : url,
-			data : form.serialize(),
+			data : form.serialize() + csrfTokenParam,
 			success : function(response) {
 				alert(response.status + " : " + response.data);
 				if(response.status == 'success') {

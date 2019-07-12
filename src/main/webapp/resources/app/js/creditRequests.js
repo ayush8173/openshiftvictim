@@ -52,7 +52,7 @@ function processRequest(action, username) {
 	$.ajax({
 		type : 'POST',
 		url : 'AppController',
-		data : 'requestType=processCreditRequests&approveReject=' + action + '&username=' + username,
+		data : 'requestType=processCreditRequests&approveReject=' + action + '&username=' + username + csrfTokenParam,
 		success : function(response) {
 			showCreditRequests();
 			if (response.status == "success") {

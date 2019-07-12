@@ -158,6 +158,7 @@ public class AppController extends HttpServlet {
 						if (user != null && user.getUsername() != null) {
 							session.setAttribute("user", user);
 							session.setAttribute("isSecure", isSecure);
+							session.setAttribute("sessionCsrfToken", SecureGenerator.generateSecureString(20));
 							dispatcher = request.getRequestDispatcher("home.jsp");
 							session.setAttribute("currentPage", "home.jsp");
 
@@ -247,6 +248,7 @@ public class AppController extends HttpServlet {
 							if (user != null && user.getUsername() != null) {
 								session.setAttribute("user", user);
 								session.setAttribute("isSecure", isSecure);
+								session.setAttribute("sessionCsrfToken", SecureGenerator.generateSecureString(20));
 								dispatcher = request.getRequestDispatcher("home.jsp");
 								session.setAttribute("currentPage", "home.jsp");
 							} else {
@@ -288,7 +290,8 @@ public class AppController extends HttpServlet {
 			}
 		} else if ("logout".equals(requestType)) {
 			try {
-				userService.deleteUserToken(isSecure, loggedInUser.getUsername(), "REMEMBER_ME");
+				final String username = loggedInUser == null ? "" : loggedInUser.getUsername();
+				userService.deleteUserToken(isSecure, username, "REMEMBER_ME");
 			} catch (BookStoreException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -467,7 +470,7 @@ public class AppController extends HttpServlet {
 				out.print(jsonResponse.getJsonResponseString(jsonResponse));
 				out.flush();
 			} else {
-				request.setAttribute("errorMessage", "You are not allowed to access this content!");
+				request.setAttribute("errorMessage", "Only authenticated users are allowed to access this content!");
 				dispatcher = request.getRequestDispatcher("login.jsp");
 				request.getSession().setAttribute("currentPage", "login.jsp");
 				dispatcher.forward(request, response);
@@ -525,7 +528,7 @@ public class AppController extends HttpServlet {
 				}
 			} else if ("searchMyBooks".equals(requestType)) {
 				final String sortBy = request.getParameter("sortBy");
-				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				final String username = loggedInUser.getUsername();
 				try {
 					List<Book> bookList = applicationService.searchUserBooks(isSecure, username, sortBy);
 					if (bookList != null && bookList.size() > 0) {
@@ -546,7 +549,7 @@ public class AppController extends HttpServlet {
 				}
 			} else if ("displayBook".equals(requestType)) {
 				final String bookId = request.getParameter("bookId");
-				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				final String username = loggedInUser.getUsername();
 				try {
 					Book book = applicationService.searchBookForDisplay(isSecure, bookId, username);
 					if (book.getBookId() != null) {
@@ -568,7 +571,7 @@ public class AppController extends HttpServlet {
 			} else if ("buyBook".equals(requestType) || "returnBook".equals(requestType)) {
 				final String bookId = request.getParameter("bookId");
 				final String bookPrice = request.getParameter("bookPrice");
-				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				final String username = loggedInUser.getUsername();
 				try {
 					if ("buyBook".equals(requestType)) {
 						applicationService.buyBook(isSecure, bookId, bookPrice, username);
@@ -592,7 +595,7 @@ public class AppController extends HttpServlet {
 				}
 			} else if ("postComment".equals(requestType)) {
 				final String bookId = request.getParameter("bookId");
-				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				final String username = loggedInUser.getUsername();
 
 				final BookComment bookComment = new BookComment();
 				bookComment.setCommentor(username);
@@ -624,7 +627,7 @@ public class AppController extends HttpServlet {
 					e.printStackTrace();
 				}
 			} else if ("fetchMyProfile".equals(requestType)) {
-				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				final String username = isSecure ? loggedInUser.getUsername() : request.getParameter("username");
 				try {
 					User user = userService.searchUser(isSecure, username);
 					if (user != null) {
@@ -646,7 +649,7 @@ public class AppController extends HttpServlet {
 			} else if ("transferCredits".equals(requestType)) {
 				final String toUsername = request.getParameter("toUsername");
 				final String amount = request.getParameter("amount");
-				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				final String username = loggedInUser.getUsername();
 				final String password = request.getParameter("password");
 				try {
 					userService.transferCredits(isSecure, amount, toUsername, username, password);
@@ -663,7 +666,7 @@ public class AppController extends HttpServlet {
 				}
 			} else if ("requestCredits".equals(requestType)) {
 				final String amount = request.getParameter("amount");
-				final String username = ((User) request.getSession().getAttribute("user")).getUsername();
+				final String username = loggedInUser.getUsername();
 				try {
 					userService.addCreditRequest(isSecure, amount, username);
 					jsonResponse.setStatus("success");

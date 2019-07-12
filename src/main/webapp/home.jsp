@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="LoginPage">
+<meta name="description" content="HomePage">
 <meta name="author" content="siddhant.singh@nagarro.com">
 
 <title>Home</title>
@@ -35,6 +35,7 @@
 		User user = (User) session.getAttribute("user");
 		String successMessage = (String) request.getAttribute("successMessage");
 		boolean isSecure = (boolean) session.getAttribute("isSecure");
+		String csrfToken = (String) session.getAttribute("sessionCsrfToken");
 	%>
 
 	<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -47,7 +48,17 @@
 						class="icon-bar"></span> <span class="icon-bar"></span> <span
 						class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#">Book Store Victim</a>
+				<%
+					if (isSecure) {
+				%>
+				<a class="navbar-brand" href="#">Book Store Victim (Secure)</a>
+				<%
+					} else {
+				%>
+				<a class="navbar-brand" href="#">Book Store Victim (Insecure)</a>
+				<%
+					}
+				%>
 			</div>
 			<div id="navbar" class="navbar-collapse collapse">
 				<ul class="nav navbar-nav navbar-right">
@@ -123,6 +134,7 @@
 		if (isSecure) {
 	%>
 	<input type="hidden" id="htmlSecurityType" value="secure" />
+	<input type="hidden" id="csrfToken" value="<%=csrfToken%>" />
 	<%
 		} else {
 	%>
@@ -130,6 +142,8 @@
 	<%
 		}
 	%>
+	<input type="hidden" id="loggedInUsername"
+		value="<%=user.getUsername()%>" />
 
 	<!-- Bootstrap core JavaScript - Placed at the end of the document so the pages load faster -->
 	<script src="resources/lib/js/jquery.min.js"></script>

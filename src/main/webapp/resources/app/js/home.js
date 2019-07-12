@@ -29,7 +29,13 @@ $(document).ready(function() {
 // $("#displayBookForm").submit();
 // }
 
-var imgTimer;
+var csrfTokenParam;
+if($("#htmlSecurityType").val() == "secure") {
+	csrfTokenParam = "&csrfToken=" + $("#csrfToken").val();
+} else {
+	csrfTokenParam = "";
+}
+
 
 function loadMenu(menuName) {
 	includeHTML(menuName);
